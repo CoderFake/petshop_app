@@ -12,14 +12,14 @@ static/
 │   └── main.js
 ├── img/         # Hình ảnh
 │   ├── logo.png
-│   ├── slide1.jpg
-│   ├── slide2.jpg
-│   ├── slide3.jpg
-│   ├── category-cats.jpg
-│   ├── category-dogs.jpg
-│   ├── category-small-pets.jpg
-│   ├── product-1.jpg ... product-8.jpg
-│   ├── avatar-1.jpg ... avatar-3.jpg
+│   ├── slide1.jpeg
+│   ├── slide2.jpeg
+│   ├── slide3.jpeg
+│   ├── category-cats.jpeg
+│   ├── category-dogs.jpeg
+│   ├── category-small-pets.jpeg
+│   ├── product-1.jpeg ... product-8.jpeg
+│   ├── avatar-1.jpeg ... avatar-3.jpeg
 │   ├── brand-1.png ... brand-6.png
 │   ├── 404-pet.png
 │   ├── 403-pet.png
