@@ -18,14 +18,14 @@ Pet Shop là một ứng dụng web hiện đại giúp quản lý và kinh doan
 
 ### Yêu cầu
 
-- Python 3.8+
+- Python 3.9+
 - MySQL 5.7+
 - pip (Python package manager)
 
 ### Bước 1: Clone dự án
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/CoderFake/petshop_app.git
 cd petshop_app
 ```
 
@@ -123,6 +123,3 @@ flask db migrate -m "Initial migration."
 flask db upgrade
 ```
 
-## Tác giả
-
-- Huy Trinh
