@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Truy cập bị từ chối - Pet Shop{% endblock %}
+
+{% block content %}
+<section class="error-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h1 class="display-1 text-primary mb-4">403</h1>
+                <h2 class="mb-4">Truy cập bị từ chối</h2>
+                <p class="lead mb-5">Bạn không có quyền truy cập vào trang này. Vui lòng liên hệ với quản trị viên nếu bạn cho rằng đây là một lỗi.</p>
+                <img src="{{ url_for('static', filename='img/403-pet.png') }}" class="img-fluid mb-4" style="max-height: 300px;">
+                <div>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">Trở về trang chủ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

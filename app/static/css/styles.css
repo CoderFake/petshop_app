@@ -1,0 +1,451 @@
+/*
+* Pet Shop - CSS Styles
+* Main stylesheet for Pet Shop application
+*/
+
+/* ===== Variables ===== */
+:root {
+    --primary-color: #3498db;
+    --primary-hover: #2980b9;
+    --secondary-color: #e74c3c;
+    --accent-color: #f39c12;
+    --success-color: #2ecc71;
+    --text-color: #333;
+    --text-light: #6c757d;
+    --light-bg: #f8f9fa;
+    --dark-bg: #343a40;
+    --white: #ffffff;
+    --border-color: #dee2e6;
+    --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --box-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease;
+}
+
+/* ===== General Styles ===== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    padding-top: 70px; /* For fixed navbar */
+    overflow-x: hidden;
+}
+
+a {
+    color: var(--primary-color);
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--primary-hover);
+    text-decoration: none;
+}
+
+.section-heading {
+    position: relative;
+    margin-bottom: 3rem;
+}
+
+.section-heading h2 {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.section-heading h2::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -10px;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background-color: var(--primary-color);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.hover-effect {
+    transition: var(--transition);
+}
+
+.hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+/* ===== Header & Navbar ===== */
+.navbar {
+    padding: 0.5rem 1rem;
+    box-shadow: var(--box-shadow);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.navbar-brand img {
+    max-height: 40px;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: var(--text-color);
+    padding: 1rem 1rem;
+    font-weight: 500;
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+    color: var(--primary-color);
+}
+
+.navbar .dropdown-menu {
+    border: none;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.navbar .dropdown-item:hover {
+    background-color: var(--light-bg);
+    color: var(--primary-color);
+}
+
+/* ===== Hero Section ===== */
+.hero-section {
+    margin-top: -20px;
+}
+
+.carousel-item {
+    height: 500px;
+    background-size: cover;
+    background-position: center;
+}
+
+.carousel-item img {
+    object-fit: cover;
+    height: 500px;
+}
+
+.carousel-caption {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 20px;
+    bottom: 50px;
+}
+
+.carousel-caption h2 {
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.carousel-caption p {
+    font-size: 1.25rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Features Section ===== */
+.features-section .card {
+    border-radius: 10px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.features-section .card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.features-section .card-body {
+    padding: 1.5rem;
+}
+
+.features-section .fa-3x {
+    margin-bottom: 1rem;
+}
+
+/* ===== Categories Section ===== */
+.category-card {
+    border-radius: 10px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.category-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.category-card img {
+    height: 200px;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.category-card:hover img {
+    transform: scale(1.05);
+}
+
+/* ===== Products Section ===== */
+.product-card {
+    border-radius: 10px;
+    overflow: hidden;
+    transition: var(--transition);
+    position: relative;
+}
+
+.product-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.product-thumb {
+    position: relative;
+    overflow: hidden;
+    display: block;
+}
+
+.product-thumb img {
+    height: 200px;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.product-card:hover .product-thumb img {
+    transform: scale(1.05);
+}
+
+.product-title {
+    font-size: 1rem;
+    height: 40px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.product-title a {
+    color: var(--text-color);
+}
+
+.product-title a:hover {
+    color: var(--primary-color);
+}
+
+.product-price .text-primary {
+    font-size: 1.1rem;
+}
+
+.product-rating .text-warning {
+    font-size: 0.9rem;
+}
+
+.add-to-cart {
+    transition: var(--transition);
+}
+
+/* ===== Testimonials Section ===== */
+.testimonials-section .card {
+    border-radius: 10px;
+    transition: var(--transition);
+}
+
+.testimonials-section .card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.testimonial-rating {
+    color: var(--accent-color);
+}
+
+/* ===== Newsletter Section ===== */
+.newsletter-section {
+    background-color: var(--primary-color);
+}
+
+.newsletter-form .form-control {
+    height: 50px;
+    border-radius: 0.25rem 0 0 0.25rem;
+}
+
+.newsletter-form .btn {
+    height: 50px;
+    border-radius: 0 0.25rem 0.25rem 0;
+}
+
+/* ===== Brands Section ===== */
+.brands-slider {
+    padding: 1rem 0;
+}
+
+.brand-item {
+    filter: grayscale(100%);
+    opacity: 0.6;
+    transition: var(--transition);
+}
+
+.brand-item:hover {
+    filter: grayscale(0);
+    opacity: 1;
+}
+
+.brand-item img {
+    max-height: 50px;
+}
+
+/* ===== Footer ===== */
+footer {
+    background-color: var(--dark-bg);
+    color: var(--white);
+    padding-top: 3rem;
+}
+
+footer h5 {
+    color: var(--white);
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+footer h5::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -10px;
+    width: 30px;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+footer a {
+    color: var(--white);
+    transition: var(--transition);
+}
+
+footer a:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+footer .social-links a {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    transition: var(--transition);
+}
+
+footer .social-links a:hover {
+    background-color: var(--primary-color);
+}
+
+/* ===== Back to Top Button ===== */
+.back-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 50%;
+    display: none;
+    z-index: 99;
+    box-shadow: var(--box-shadow);
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 992px) {
+    .navbar-collapse {
+        background-color: var(--white);
+        padding: 1rem;
+        border-radius: 0.25rem;
+        box-shadow: var(--box-shadow);
+    }
+
+    .carousel-item, .carousel-item img {
+        height: 400px;
+    }
+
+    .carousel-caption {
+        padding: 15px;
+    }
+
+    .carousel-caption h2 {
+        font-size: 1.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-top: 60px;
+    }
+
+    .navbar-brand img {
+        max-height: 30px;
+    }
+
+    .carousel-item, .carousel-item img {
+        height: 300px;
+    }
+
+    .carousel-caption {
+        bottom: 20px;
+        padding: 10px;
+    }
+
+    .carousel-caption h2 {
+        font-size: 1.5rem;
+    }
+
+    .section-heading h2 {
+        font-size: 1.75rem;
+    }
+
+    .product-title {
+        height: auto;
+        max-height: 40px;
+    }
+}
+
+@media (max-width: 576px) {
+    .carousel-item, .carousel-item img {
+        height: 250px;
+    }
+
+    .carousel-caption h2 {
+        font-size: 1.25rem;
+    }
+
+    .carousel-caption p {
+        font-size: 1rem;
+    }
+
+    .section-heading h2 {
+        font-size: 1.5rem;
+    }
+}
