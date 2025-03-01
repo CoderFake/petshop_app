@@ -18,17 +18,18 @@ class DevelopmentConfig(Config):
     )
 
 class TestingConfig(Config):
+    FLASK_ENV = 'testing'
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'TEST_DATABASE_URL',
-        'mysql+pymysql://root:@localhost/petshop_test?charset=utf8mb4'
+        'mysql+pymysql://root:@localhost/petshop_dev?charset=utf8mb4'
     )
 
 class ProductionConfig(Config):
     FLASK_ENV = 'production'
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL',
-        'mysql+pymysql://root:@localhost/petshop?charset=utf8mb4'
+        'mysql+pymysql://root:@localhost/petshop_dev?charset=utf8mb4'
     )
 
 config = {
