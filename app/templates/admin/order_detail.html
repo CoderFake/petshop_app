@@ -1,0 +1,399 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Chi tiết đơn hàng - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Chi tiết đơn hàng #{{ order.id }}</h1>
+        <div>
+            <a href="{{ url_for('admin.orders') }}" class="d-none d-sm-inline-block btn btn-secondary mr-2">
+                <i class="fas fa-arrow-left fa-sm"></i> Quay lại
+            </a>
+            <a href="#" class="d-none d-sm-inline-block btn btn-primary" onclick="window.print()">
+                <i class="fas fa-print fa-sm"></i> In đơn hàng
+            </a>
+        </div>
+    </div>
+
+    <!-- Success/Error messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Order Status Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Trạng thái đơn hàng</h6>
+                    {% if order.status != 'cancelled' and order.status != 'delivered' %}
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#updateStatusModal">
+                        <i class="fas fa-edit fa-sm"></i> Cập nhật trạng thái
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="font-weight-bold">Trạng thái đơn hàng:</h5>
+                            <span class="badge badge-{{ order.status|status_class }} p-2">{{ order.status|status_text }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <h5 class="font-weight-bold">Trạng thái thanh toán:</h5>
+                            <span class="badge badge-{{ order.payment_status|status_class }} p-2">{{ order.payment_status|status_text }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <h5 class="font-weight-bold">Phương thức thanh toán:</h5>
+                            <span>{{ order.payment_method|payment_method_text }}</span>
+                        </div>
+                        {% if order.transaction_id %}
+                        <div class="d-flex justify-content-between mt-2">
+                            <h5 class="font-weight-bold">Mã giao dịch:</h5>
+                            <span>{{ order.transaction_id }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="progress-track">
+                        <ul id="progressbar">
+                            <li class="step0 {{ 'active' if order.status != 'cancelled' else 'text-muted' }} text-center" id="step1">Đặt hàng</li>
+                            <li class="step0 {{ 'active' if order.status in ['processing', 'shipped', 'delivered'] else 'text-muted' }} text-center" id="step2">Xử lý</li>
+                            <li class="step0 {{ 'active' if order.status in ['shipped', 'delivered'] else 'text-muted' }} text-center" id="step3">Vận chuyển</li>
+                            <li class="step0 {{ 'active' if order.status == 'delivered' else 'text-muted' }} text-center" id="step4">Giao hàng</li>
+                        </ul>
+                    </div>
+
+                    {% if order.status == 'cancelled' %}
+                    <div class="alert alert-danger mt-3">
+                        <i class="fas fa-exclamation-triangle mr-2"></i> Đơn hàng này đã bị hủy
+                    </div>
+                    {% endif %}
+
+                    {% if order.notes %}
+                    <div class="mt-3">
+                        <h5 class="font-weight-bold">Ghi chú đơn hàng:</h5>
+                        <p>{{ order.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Order Products Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sản phẩm trong đơn hàng</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center" width="100">Số lượng</th>
+                                    <th class="text-right" width="150">Đơn giá</th>
+                                    <th class="text-right" width="150">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.order_details %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.product.thumbnail %}
+                                            <img src="{{ item.product.thumbnail }}" alt="{{ item.product.title }}" class="mr-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ item.product.title }}</h6>
+                                                <small class="text-muted">Mã SP: {{ item.product.id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-right">{{ '{:,.0f}'.format(item.price|float) }}đ</td>
+                                    <td class="text-right">{{ '{:,.0f}'.format(item.subtotal) }}đ</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-right">Tổng cộng:</th>
+                                    <th class="text-right">{{ '{:,.0f}'.format(order.total_price|float) }}đ</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Customer Info Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông tin khách hàng</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="mr-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 20px;">
+                                {{ order.fullname[0] | upper }}
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">{{ order.fullname }}</h5>
+                            {% if order.user %}
+                            <p class="text-muted mb-0 small">Tài khoản: <a href="{{ url_for('admin.user_detail', user_id=order.user.id) }}">{{ order.user.name }}</a></p>
+                            {% else %}
+                            <p class="text-muted mb-0 small">Khách không đăng nhập</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold">Thông tin liên hệ</h6>
+                        <p class="mb-1"><i class="fas fa-envelope mr-2 text-gray-500"></i> {{ order.email }}</p>
+                        <p class="mb-0"><i class="fas fa-phone mr-2 text-gray-500"></i> {{ order.phone }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold">Địa chỉ giao hàng</h6>
+                        <p class="mb-0"><i class="fas fa-map-marker-alt mr-2 text-gray-500"></i> {{ order.address }}</p>
+                    </div>
+
+                    <div>
+                        <h6 class="font-weight-bold">Thông tin đơn hàng</h6>
+                        <p class="mb-1"><i class="fas fa-calendar mr-2 text-gray-500"></i> Ngày đặt: {{ order.order_date|format_datetime('%d/%m/%Y %H:%M') }}</p>
+                        <p class="mb-0"><i class="fas fa-shopping-bag mr-2 text-gray-500"></i> Số sản phẩm: {{ order.order_details|length }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Actions Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thao tác</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% if order.status != 'cancelled' and order.status != 'delivered' %}
+                        <button type="button" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#updateStatusModal">
+                            <i class="fas fa-edit mr-2 text-primary"></i> Cập nhật trạng thái
+                        </button>
+                        {% endif %}
+
+                        {% if order.status == 'pending' %}
+                        <form method="post" action="{{ url_for('admin.update_order_status', order_id=order.id) }}" class="d-inline">
+                            <input type="hidden" name="status" value="processing">
+                            <button type="submit" class="list-group-item list-group-item-action">
+                                <i class="fas fa-check mr-2 text-success"></i> Xác nhận đơn hàng
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if order.status == 'processing' %}
+                        <form method="post" action="{{ url_for('admin.update_order_status', order_id=order.id) }}" class="d-inline">
+                            <input type="hidden" name="status" value="shipped">
+                            <button type="submit" class="list-group-item list-group-item-action">
+                                <i class="fas fa-truck mr-2 text-primary"></i> Chuyển sang vận chuyển
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if order.status == 'shipped' %}
+                        <form method="post" action="{{ url_for('admin.update_order_status', order_id=order.id) }}" class="d-inline">
+                            <input type="hidden" name="status" value="delivered">
+                            <button type="submit" class="list-group-item list-group-item-action">
+                                <i class="fas fa-box mr-2 text-success"></i> Xác nhận đã giao hàng
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if order.status != 'cancelled' and order.status != 'delivered' %}
+                        <form method="post" action="{{ url_for('admin.update_order_status', order_id=order.id) }}" class="d-inline">
+                            <input type="hidden" name="status" value="cancelled">
+                            <button type="submit" class="list-group-item list-group-item-action" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')">
+                                <i class="fas fa-times mr-2 text-danger"></i> Hủy đơn hàng
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <button type="button" class="list-group-item list-group-item-action" onclick="window.print()">
+                            <i class="fas fa-print mr-2 text-info"></i> In đơn hàng
+                        </button>
+
+                        <button type="button" class="list-group-item list-group-item-action" onclick="sendOrderConfirmationEmail()">
+                            <i class="fas fa-envelope mr-2 text-warning"></i> Gửi lại email thông báo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cập nhật trạng thái đơn hàng #{{ order.id }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" action="{{ url_for('admin.update_order_status', order_id=order.id) }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="status">Trạng thái đơn hàng</label>
+                        <select class="form-control" id="status" name="status">
+                            <option value="pending" {{ 'selected' if order.status == 'pending' else '' }}>Chờ xác nhận</option>
+                            <option value="processing" {{ 'selected' if order.status == 'processing' else '' }}>Đang xử lý</option>
+                            <option value="shipped" {{ 'selected' if order.status == 'shipped' else '' }}>Đang giao hàng</option>
+                            <option value="delivered" {{ 'selected' if order.status == 'delivered' else '' }}>Đã giao hàng</option>
+                            <option value="cancelled" {{ 'selected' if order.status == 'cancelled' else '' }}>Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle mr-1"></i> Lưu ý: Khi đơn hàng được chuyển sang trạng thái "Đã giao hàng", trạng thái thanh toán của đơn hàng COD sẽ tự động chuyển thành "Đã thanh toán".
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Stepper Styles */
+    #progressbar {
+        margin-bottom: 3vh;
+        overflow: hidden;
+        color: #455a64;
+        padding-left: 0px;
+        margin-top: 30px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #progressbar li {
+        list-style-type: none;
+        font-size: 0.8rem;
+        width: 25%;
+        float: left;
+        position: relative;
+        letter-spacing: 1px;
+        font-weight: 700;
+    }
+
+    #progressbar li:before {
+        content: '\f00c';
+        font-family: "Font Awesome 5 Free";
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        border-radius: 50%;
+        margin: 0 auto 10px auto;
+        background: #eaecf4;
+        color: #eaecf4;
+    }
+
+    #progressbar li:after {
+        content: '';
+        width: 100%;
+        height: 2px;
+        background: #eaecf4;
+        position: absolute;
+        top: 20px;
+        left: 0;
+        z-index: -1;
+    }
+
+    #progressbar li:first-child:after {
+        width: 50%;
+        left: 50%;
+    }
+
+    #progressbar li:last-child:after {
+        width: 50%;
+    }
+
+    #progressbar li.active {
+        color: #4e73df;
+    }
+
+    #progressbar li.active:before {
+        background: #4e73df;
+        color: white;
+    }
+
+    #progressbar li.active:after {
+        background: #4e73df;
+    }
+
+    @media print {
+        body {
+            background-color: #fff !important;
+        }
+        .card {
+            box-shadow: none !important;
+        }
+        .no-print, .no-print * {
+            display: none !important;
+        }
+        a[href]:after {
+            content: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function sendOrderConfirmationEmail() {
+        if (confirm('Bạn có chắc chắn muốn gửi lại email thông báo đơn hàng?')) {
+            // AJAX request to send email
+            fetch('/admin/orders/{{ order.id }}/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Đã gửi email thành công!');
+                } else {
+                    alert('Có lỗi xảy ra: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi gửi email.');
+            });
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,367 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Chỉnh sửa sản phẩm - Admin{% endblock %}
+
+{% block extra_css %}
+<!-- Summernote CSS -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Chỉnh sửa sản phẩm</h1>
+    <p class="mb-4">Cập nhật thông tin cho sản phẩm "{{ product.title }}".</p>
+
+    <!-- Success/Error messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Thông tin sản phẩm</h6>
+            <div>
+                <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-info btn-sm" target="_blank">
+                    <i class="fas fa-eye mr-1"></i> Xem trên trang chủ
+                </a>
+                <form method="post" action="{{ url_for('admin.delete_product', product_id=product.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')">
+                        <i class="fas fa-trash mr-1"></i> Xóa sản phẩm
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('admin.edit_product', product_id=product.id) }}" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="title">Tên sản phẩm <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ product.title }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Mô tả sản phẩm</label>
+                            <textarea class="form-control" id="description" name="description" rows="10">{{ product.description }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="category_id">Danh mục <span class="text-danger">*</span></label>
+                            <select class="form-control" id="category_id" name="category_id" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {{ 'selected' if product.category_id == category.id else '' }}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="price">Giá sản phẩm <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="price" name="price" min="0" step="1000" value="{{ product.price }}" required>
+                                <div class="input-group-append">
+                                    <span class="input-group-text">đ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="image">Hình ảnh chính</label>
+                            <input type="text" class="form-control" id="image" name="image" value="{{ product.image or '' }}" placeholder="URL hình ảnh">
+                            <small class="form-text text-muted">Nhập URL hình ảnh chính của sản phẩm</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="thumbnail">Hình ảnh thu nhỏ</label>
+                            <input type="text" class="form-control" id="thumbnail" name="thumbnail" value="{{ product.thumbnail or '' }}" placeholder="URL hình thu nhỏ">
+                            <small class="form-text text-muted">Nhập URL hình ảnh thu nhỏ của sản phẩm</small>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Xem trước hình ảnh</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <div id="imagePreview" class="mb-3">
+                                    {% if product.image or product.thumbnail %}
+                                    <img src="{{ product.image or product.thumbnail }}" alt="{{ product.title }}" class="img-fluid" style="max-height: 300px;">
+                                    {% else %}
+                                    <img src="https://via.placeholder.com/300x300?text=No+Image" alt="Xem trước" class="img-fluid" style="max-height: 300px;">
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <a href="{{ url_for('admin.products') }}" class="btn btn-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-primary">Cập nhật sản phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Thư viện hình ảnh</h6>
+            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addGalleryModal">
+                <i class="fas fa-plus fa-sm"></i> Thêm hình ảnh
+            </button>
+        </div>
+        <div class="card-body">
+            {% if product.gallery %}
+            <div class="row">
+                {% for image in product.gallery %}
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        <img src="{{ image.image_url }}" class="card-img-top" alt="Gallery image" style="height: 180px; object-fit: cover;">
+                        <div class="card-body p-2 text-center">
+                            <p class="small text-muted mb-2">Thứ tự: {{ image.display_order }}</p>
+                            <form method="post" action="#" class="d-inline">
+                                <input type="hidden" name="gallery_id" value="{{ image.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa hình ảnh này?')">
+                                    <i class="fas fa-trash"></i> Xóa
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-images fa-4x text-gray-300 mb-3"></i>
+                <p class="text-gray-500 mb-0">Sản phẩm chưa có hình ảnh trong thư viện.</p>
+                <button type="button" class="btn btn-primary mt-3" data-toggle="modal" data-target="#addGalleryModal">
+                    <i class="fas fa-plus fa-sm"></i> Thêm hình ảnh
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Đánh giá sản phẩm</h6>
+        </div>
+        <div class="card-body">
+            {% if product.feedback %}
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Người đánh giá</th>
+                            <th>Đánh giá</th>
+                            <th>Nhận xét</th>
+                            <th>Ngày đánh giá</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fb in product.feedback %}
+                        <tr>
+                            <td>{{ fb.id }}</td>
+                            <td>{{ fb.name }}</td>
+                            <td>
+                                {% for i in range(5) %}
+                                    {% if i < fb.rating %}
+                                    <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                    <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>{{ fb.comment|truncate(50) }}</td>
+                            <td>{{ fb.created_at|format_datetime('%d/%m/%Y') }}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#viewFeedbackModal{{ fb.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <form method="post" action="#" class="d-inline">
+                                    <input type="hidden" name="feedback_id" value="{{ fb.id }}">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <!-- View Feedback Modal -->
+                        <div class="modal fade" id="viewFeedbackModal{{ fb.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Chi tiết đánh giá</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="mr-3">
+                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 20px;">
+                                                    {{ fb.name[0] | upper }}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-0 font-weight-bold">{{ fb.name }}</h5>
+                                                <p class="text-muted small mb-0">{{ fb.email }}</p>
+                                                <div>
+                                                    {% for i in range(5) %}
+                                                        {% if i < fb.rating %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                        {% else %}
+                                                        <i class="far fa-star text-warning"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    <span class="text-muted ml-2">{{ fb.created_at|format_datetime('%d/%m/%Y %H:%M') }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="card">
+                                            <div class="card-header bg-light">
+                                                <h6 class="mb-0">Nội dung đánh giá</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <p>{{ fb.comment }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                                        <form method="post" action="#" class="d-inline">
+                                            <input type="hidden" name="feedback_id" value="{{ fb.id }}">
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?')">
+                                                <i class="fas fa-trash mr-1"></i> Xóa đánh giá
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-comment fa-4x text-gray-300 mb-3"></i>
+                <p class="text-gray-500 mb-0">Sản phẩm chưa có đánh giá nào.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Gallery Modal -->
+<div class="modal fade" id="addGalleryModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm hình ảnh vào thư viện</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" action="#" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="gallery_image_url">URL hình ảnh <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="gallery_image_url" name="image_url" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gallery_thumbnail">URL hình thu nhỏ</label>
+                        <input type="text" class="form-control" id="gallery_thumbnail" name="thumbnail">
+                        <small class="form-text text-muted">Để trống nếu không có hình thu nhỏ</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="gallery_display_order">Thứ tự hiển thị</label>
+                        <input type="number" class="form-control" id="gallery_display_order" name="display_order" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Xem trước</label>
+                        <div class="text-center">
+                            <img id="galleryPreview" src="https://via.placeholder.com/300x300?text=No+Image" alt="Xem trước" class="img-fluid" style="max-height: 200px;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Thêm hình ảnh</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Summernote JS -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Khởi tạo Summernote
+        $('#description').summernote({
+            placeholder: 'Nhập mô tả chi tiết sản phẩm...',
+            height: 300,
+            lang: 'vi-VN',
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
+        });
+
+        // Xem trước hình ảnh
+        $('#image, #thumbnail').on('input', function() {
+            var imageUrl = $('#image').val() || $('#thumbnail').val();
+            if (imageUrl) {
+                $('#imagePreview img').attr('src', imageUrl);
+            } else {
+                $('#imagePreview img').attr('src', 'https://via.placeholder.com/300x300?text=No+Image');
+            }
+        });
+
+        // Xem trước hình ảnh gallery
+        $('#gallery_image_url').on('input', function() {
+            var imageUrl = $(this).val();
+            if (imageUrl) {
+                $('#galleryPreview').attr('src', imageUrl);
+            } else {
+                $('#galleryPreview').attr('src', 'https://via.placeholder.com/300x300?text=No+Image');
+            }
+        });
+
+        // Định dạng giá tiền
+        $('#price').on('input', function() {
+            var value = $(this).val();
+            if (value) {
+                value = parseInt(value.replace(/\D/g, ''));
+                if (isNaN(value)) value = 0;
+                $(this).val(value);
+            }
+        });
+    });
+</script>
+{% endblock %}

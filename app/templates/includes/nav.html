@@ -1,0 +1,95 @@
+<!-- Navigation Bar Component -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Pet Shop Logo" height="40">
+            <span class="ml-2 font-weight-bold text-primary">PET SHOP</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item {{ 'active' if request.endpoint == 'main.index' }}">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Trang chủ</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">
+                        Danh mục
+                    </a>
+                    <div class="dropdown-menu">
+                        {% for category in g.categories if g.categories %}
+                            <a class="dropdown-item" href="{{ url_for('main.category', category_id=category.id) }}">{{ category.name }}</a>
+                        {% else %}
+                            <a class="dropdown-item" href="#">Chó cưng</a>
+                            <a class="dropdown-item" href="#">Mèo cưng</a>
+                            <a class="dropdown-item" href="#">Thức ăn</a>
+                            <a class="dropdown-item" href="#">Phụ kiện</a>
+                        {% endfor %}
+                    </div>
+                </li>
+                <li class="nav-item {{ 'active' if request.endpoint == 'main.products' }}">
+                    <a class="nav-link" href="{{ url_for('main.products') }}">Sản phẩm</a>
+                </li>
+                <li class="nav-item {{ 'active' if request.endpoint == 'main.about' }}">
+                    <a class="nav-link" href="{{ url_for('main.about') }}">Về chúng tôi</a>
+                </li>
+                <li class="nav-item {{ 'active' if request.endpoint == 'main.contact' }}">
+                    <a class="nav-link" href="{{ url_for('main.contact') }}">Liên hệ</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <form class="form-inline mr-3" action="{{ url_for('main.products') }}" method="get">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="search" placeholder="Tìm kiếm..." value="{{ request.args.get('search', '') }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div class="d-flex">
+                    {% if session.get('user_id') %}
+                        <div class="btn-group mr-2">
+                            <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user mr-1"></i>{{ session.get('user_name', 'Tài khoản') }}
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <a class="dropdown-item" href="{{ url_for('auth.profile') }}">
+                                    <i class="fas fa-user-circle mr-2"></i>Thông tin tài khoản
+                                </a>
+                                <a class="dropdown-item" href="{{ url_for('main.orders') }}">
+                                    <i class="fas fa-shopping-bag mr-2"></i>Đơn hàng của tôi
+                                </a>
+                                <a class="dropdown-item" href="{{ url_for('main.wishlist') }}">
+                                    <i class="fas fa-heart mr-2"></i>Sản phẩm yêu thích
+                                </a>
+                                {% if session.get('user_role') == 'Admin' %}
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="{{ url_for('admin.index') }}">
+                                        <i class="fas fa-cog mr-2"></i>Quản trị viên
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Đăng xuất
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary mr-2">
+                            <i class="fas fa-user mr-1"></i>Đăng nhập
+                        </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.cart') }}" class="btn btn-primary position-relative">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="badge badge-pill badge-danger position-absolute" style="top: -5px; right: -5px;">
+                            {{ session.get('cart', {})|length }}
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>

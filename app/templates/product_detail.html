@@ -1,0 +1,532 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.title }} - Pet Shop{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Section -->
+<div class="bg-light py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-light mb-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.products') }}">Sản phẩm</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.category', category_id=product.category_id) }}">{{ product.category.name }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ product.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Product Detail Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Product Images -->
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="product-main-image mb-3">
+                            {% if product.image %}
+                            <img src="{{ product.image }}" alt="{{ product.title }}" class="img-fluid" id="mainImage">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='img/product-placeholder.jpeg') }}" alt="{{ product.title }}" class="img-fluid" id="mainImage">
+                            {% endif %}
+                        </div>
+                        {% if product.gallery %}
+                        <div class="product-thumbnails d-flex">
+                            {% if product.image %}
+                            <div class="thumbnail-item mr-2">
+                                <img src="{{ product.image }}" alt="{{ product.title }}" class="img-thumbnail" onclick="changeMainImage(this.src)">
+                            </div>
+                            {% endif %}
+                            {% for image in product.gallery %}
+                            <div class="thumbnail-item mr-2">
+                                <img src="{{ image.image_url }}" alt="{{ product.title }}" class="img-thumbnail" onclick="changeMainImage(this.src)">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h1 class="h2 font-weight-bold mb-3">{{ product.title }}</h1>
+
+                        <div class="mb-3">
+                            <div class="product-rating">
+                                {% set avg_rating = product.get_average_rating() %}
+                                {% for i in range(5) %}
+                                    {% if i < avg_rating|int %}
+                                    <i class="fas fa-star text-warning"></i>
+                                    {% elif avg_rating - i > 0 and avg_rating - i < 1 %}
+                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                    <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="ml-2">{{ '%.1f'|format(avg_rating) }} ({{ product.feedback|length }} đánh giá)</span>
+                            </div>
+                        </div>
+
+                        <div class="product-price mb-4">
+                            <span class="text-primary font-weight-bold h3">{{ '{:,.0f}'.format(product.price) }}đ</span>
+                            {% if product.compare_price and product.compare_price > product.price %}
+                            <span class="text-muted ml-2"><del>{{ '{:,.0f}'.format(product.compare_price) }}đ</del></span>
+                            <span class="badge badge-danger ml-2">-{{ ((1 - product.price / product.compare_price) * 100)|int }}%</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-meta mb-4">
+                            <p class="mb-2"><strong>Danh mục:</strong> <a href="{{ url_for('main.category', category_id=product.category_id) }}">{{ product.category.name }}</a></p>
+                            <p class="mb-2"><strong>Mã sản phẩm:</strong> #{{ product.id }}</p>
+                            <p class="mb-0"><strong>Tình trạng:</strong> <span class="text-success">Còn hàng</span></p>
+                        </div>
+
+                        <hr>
+
+                        <form id="addToCartForm" method="post" action="{{ url_for('main.add_to_cart') }}">
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <div class="form-group">
+                                <label for="quantity">Số lượng</label>
+                                <div class="quantity-select d-flex align-items-center">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-minus">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" id="quantity" name="quantity" class="form-control mx-2 text-center" value="1" min="1" max="10">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-plus">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="d-flex mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg flex-grow-1 mr-2">
+                                    <i class="fas fa-cart-plus mr-2"></i>Thêm vào giỏ
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-lg" id="buyNow">
+                                    <i class="fas fa-bolt mr-2"></i>Mua ngay
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr>
+
+                        <div class="product-features mt-4">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-truck text-primary fa-2x mr-3"></i>
+                                        <div>
+                                            <h6 class="mb-1">Giao hàng miễn phí</h6>
+                                            <p class="mb-0 small text-muted">Cho đơn hàng từ 500.000đ</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-undo text-primary fa-2x mr-3"></i>
+                                        <div>
+                                            <h6 class="mb-1">Đổi trả dễ dàng</h6>
+                                            <p class="mb-0 small text-muted">Trong vòng 7 ngày</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-headset text-primary fa-2x mr-3"></i>
+                                        <div>
+                                            <h6 class="mb-1">Hỗ trợ 24/7</h6>
+                                            <p class="mb-0 small text-muted">Luôn sẵn sàng hỗ trợ</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-shield-alt text-primary fa-2x mr-3"></i>
+                                        <div>
+                                            <h6 class="mb-1">Thanh toán an toàn</h6>
+                                            <p class="mb-0 small text-muted">Nhiều phương thức</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Description & Reviews Tabs -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white p-0">
+                <ul class="nav nav-tabs" id="productTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="description-tab" data-toggle="tab" href="#description" role="tab" aria-controls="description" aria-selected="true">Mô tả sản phẩm</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="reviews-tab" data-toggle="tab" href="#reviews" role="tab" aria-controls="reviews" aria-selected="false">Đánh giá ({{ product.feedback|length }})</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="productTabContent">
+                    <!-- Description Tab -->
+                    <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                        <div class="product-description">
+                            {% if product.description %}
+                            {{ product.description|safe }}
+                            {% else %}
+                            <p class="text-muted text-center">Chưa có mô tả cho sản phẩm này.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Reviews Tab -->
+                    <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                        <div class="product-reviews">
+                            <!-- Reviews Summary -->
+                            <div class="reviews-summary mb-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3 text-center">
+                                        <div class="average-rating">
+                                            <div class="display-4 font-weight-bold text-primary">{{ '%.1f'|format(product.get_average_rating()) }}</div>
+                                            <div class="product-rating mt-2">
+                                                {% set avg_rating = product.get_average_rating() %}
+                                                {% for i in range(5) %}
+                                                    {% if i < avg_rating|int %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                    {% elif avg_rating - i > 0 and avg_rating - i < 1 %}
+                                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                                    {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <div class="small text-muted mt-1">Dựa trên {{ product.feedback|length }} đánh giá</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="rating-breakdown">
+                                            {% for i in range(5, 0, -1) %}
+                                            <div class="d-flex align-items-center mb-2">
+                                                <div class="mr-3" style="width: 50px;">{{ i }} <i class="fas fa-star text-warning"></i></div>
+                                                <div class="progress flex-grow-1 mr-3" style="height: 8px;">
+                                                    {% set count = product.feedback|selectattr('rating', 'eq', i)|list|length %}
+                                                    {% set percentage = (count / product.feedback|length * 100) if product.feedback|length > 0 else 0 %}
+                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ percentage }}%" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <div style="width: 30px;">{{ count }}</div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#reviewModal">
+                                            <i class="fas fa-pencil-alt mr-2"></i>Viết đánh giá
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Reviews List -->
+                            <div class="reviews-list mt-4">
+                                {% if product.feedback %}
+                                    {% for review in product.feedback %}
+                                    <div class="review-item mb-4">
+                                        <div class="d-flex">
+                                            <div class="avatar-container mr-3">
+                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 20px;">
+                                                    {{ review.name[0]|upper }}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-0">{{ review.name }}</h5>
+                                                <div class="d-flex align-items-center mt-1">
+                                                    {% for i in range(5) %}
+                                                        {% if i < review.rating %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                        {% else %}
+                                                        <i class="far fa-star text-warning"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    <span class="text-muted ml-2 small">{{ review.created_at|format_datetime('%d/%m/%Y') }}</span>
+                                                </div>
+                                                <div class="review-content mt-2">
+                                                    <p>{{ review.comment }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                                    <p class="mb-0">Sản phẩm này chưa có đánh giá. Hãy là người đầu tiên đánh giá!</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <div class="mt-5">
+            <h3 class="font-weight-bold mb-4">Sản phẩm liên quan</h3>
+            <div class="row">
+                {% for related_product in related_products %}
+                <div class="col-lg-3 col-md-4 col-6 mb-4">
+                    <div class="card product-card h-100 border-0 shadow-sm">
+                        {% if related_product.price < related_product.compare_price %}
+                        <div class="product-badge bg-danger text-white">-{{ ((1 - related_product.price / related_product.compare_price) * 100)|int }}%</div>
+                        {% endif %}
+                        <a href="{{ url_for('main.product_detail', product_id=related_product.id) }}" class="product-thumb">
+                            {% if related_product.thumbnail %}
+                            <img src="{{ related_product.thumbnail }}" class="card-img-top" alt="{{ related_product.title }}">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='img/product-placeholder.jpeg') }}" class="card-img-top" alt="{{ related_product.title }}">
+                            {% endif %}
+                        </a>
+                        <div class="card-body">
+                            <div class="product-category small text-muted mb-1">{{ related_product.category.name }}</div>
+                            <h5 class="card-title product-title">
+                                <a href="{{ url_for('main.product_detail', product_id=related_product.id) }}">{{ related_product.title }}</a>
+                            </h5>
+                            <div class="product-rating mb-2">
+                                {% set avg_rating = related_product.get_average_rating() %}
+                                {% for i in range(5) %}
+                                    {% if i < avg_rating|int %}
+                                    <i class="fas fa-star text-warning"></i>
+                                    {% elif avg_rating - i > 0 and avg_rating - i < 1 %}
+                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                    <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="small text-muted ml-1">({{ related_product.feedback|length }})</span>
+                            </div>
+                            <div class="product-price d-flex align-items-center mb-2">
+                                <span class="text-primary font-weight-bold">{{ '{:,.0f}'.format(related_product.price) }}đ</span>
+                                {% if related_product.compare_price and related_product.compare_price > related_product.price %}
+                                <span class="text-muted ml-2"><del>{{ '{:,.0f}'.format(related_product.compare_price) }}đ</del></span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 pt-0">
+                            <div class="product-action">
+                                <button class="btn btn-primary btn-sm w-100 add-to-cart" data-product-id="{{ related_product.id }}">
+                                    <i class="fas fa-cart-plus mr-2"></i>Thêm vào giỏ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đánh giá sản phẩm</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="reviewForm" method="post" action="{{ url_for('main.add_review', product_id=product.id) }}">
+                    <div class="form-group">
+                        <label for="rating">Đánh giá của bạn</label>
+                        <div class="rating-select">
+                            <div class="stars">
+                                {% for i in range(5, 0, -1) %}
+                                <input type="radio" name="rating" id="rating-{{ i }}" value="{{ i }}" {% if i == 5 %}checked{% endif %}>
+                                <label for="rating-{{ i }}"><i class="fas fa-star"></i></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">Họ tên</label>
+                                <input type="text" class="form-control" id="name" name="name" required {% if current_user %}value="{{ current_user.name }}"{% endif %}>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required {% if current_user %}value="{{ current_user.email }}"{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="comment">Nhận xét của bạn</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="5" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('reviewForm').submit()">Gửi đánh giá</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Product thumbnails */
+    .thumbnail-item {
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .thumbnail-item:hover {
+        border-color: #3498db;
+    }
+
+    /* Rating stars for review form */
+    .rating-select .stars {
+        display: inline-flex;
+        flex-direction: row-reverse;
+        position: relative;
+    }
+    .rating-select .stars input {
+        position: absolute;
+        left: -9999px;
+    }
+    .rating-select .stars label {
+        cursor: pointer;
+        padding: 5px;
+        font-size: 24px;
+        color: #ddd;
+    }
+    .rating-select .stars label:hover,
+    .rating-select .stars label:hover ~ label,
+    .rating-select .stars input:checked ~ label {
+        color: #f6c23e;
+    }
+
+    /* Reviews tab */
+    .reviews-summary {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .review-item {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+    }
+    .review-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeMainImage(src) {
+        document.getElementById('mainImage').src = src;
+    }
+
+    $(document).ready(function() {
+        // Quantity selector
+        $('.btn-minus').on('click', function() {
+            let input = $(this).next('input');
+            let value = parseInt(input.val());
+            if (value > 1) {
+                input.val(value - 1);
+            }
+        });
+
+        $('.btn-plus').on('click', function() {
+            let input = $(this).prev('input');
+            let value = parseInt(input.val());
+            if (value < 10) {
+                input.val(value + 1);
+            }
+        });
+
+        // Buy now button
+        $('#buyNow').on('click', function() {
+            $('#addToCartForm').append('<input type="hidden" name="buy_now" value="1">');
+            $('#addToCartForm').submit();
+        });
+
+        // Add to cart form submission
+        $('#addToCartForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const formData = $(this).serialize();
+
+            $.ajax({
+                url: "{{ url_for('main.add_to_cart') }}",
+                type: "POST",
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        // Update cart count
+                        $('.navbar .badge').text(response.cart_count);
+
+                        // Show notification
+                        showNotification('success', 'Đã thêm sản phẩm vào giỏ hàng!');
+
+                        // Redirect if buy now
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        }
+                    } else {
+                        showNotification('warning', response.message || 'Không thể thêm vào giỏ hàng');
+                    }
+                },
+                error: function() {
+                    showNotification('danger', 'Đã xảy ra lỗi. Vui lòng thử lại sau.');
+                }
+            });
+        });
+
+        // Add to cart for related products
+        $('.add-to-cart').on('click', function() {
+            const productId = $(this).data('product-id');
+
+            // AJAX call to add product to cart
+            $.ajax({
+                url: '{{ url_for("main.add_to_cart") }}',
+                type: 'POST',
+                data: {
+                    product_id: productId,
+                    quantity: 1
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update cart count
+                        $('.navbar .badge').text(response.cart_count);
+
+                        // Show notification
+                        showNotification('success', 'Đã thêm sản phẩm vào giỏ hàng!');
+                    } else {
+                        showNotification('warning', response.message || 'Không thể thêm vào giỏ hàng');
+                    }
+                },
+                error: function() {
+                    showNotification('danger', 'Đã xảy ra lỗi. Vui lòng thử lại sau.');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

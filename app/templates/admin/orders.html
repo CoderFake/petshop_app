@@ -1,0 +1,265 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Quản lý đơn hàng - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Quản lý đơn hàng</h1>
+    <p class="mb-4">Quản lý tất cả đơn hàng trong hệ thống.</p>
+
+    <!-- Success/Error messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Order Filter Buttons -->
+    <div class="mb-4">
+        <a href="{{ url_for('admin.orders') }}" class="btn {{ 'btn-primary' if not current_status else 'btn-outline-primary' }} mr-2">
+            Tất cả
+        </a>
+        <a href="{{ url_for('admin.orders', status='pending') }}" class="btn {{ 'btn-warning' if current_status == 'pending' else 'btn-outline-warning' }} mr-2">
+            Chờ xác nhận
+        </a>
+        <a href="{{ url_for('admin.orders', status='processing') }}" class="btn {{ 'btn-info' if current_status == 'processing' else 'btn-outline-info' }} mr-2">
+            Đang xử lý
+        </a>
+        <a href="{{ url_for('admin.orders', status='shipped') }}" class="btn {{ 'btn-primary' if current_status == 'shipped' else 'btn-outline-primary' }} mr-2">
+            Đang giao hàng
+        </a>
+        <a href="{{ url_for('admin.orders', status='delivered') }}" class="btn {{ 'btn-success' if current_status == 'delivered' else 'btn-outline-success' }} mr-2">
+            Đã giao hàng
+        </a>
+        <a href="{{ url_for('admin.orders', status='cancelled') }}" class="btn {{ 'btn-danger' if current_status == 'cancelled' else 'btn-outline-danger' }}">
+            Đã hủy
+        </a>
+    </div>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách đơn hàng</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                    <div class="dropdown-header">Thao tác:</div>
+                    <a class="dropdown-item" href="#" onclick="exportToExcel()"><i class="fas fa-file-excel fa-sm fa-fw mr-2 text-gray-400"></i>Xuất Excel</a>
+                    <a class="dropdown-item" href="#" onclick="printOrders()"><i class="fas fa-print fa-sm fa-fw mr-2 text-gray-400"></i>In danh sách</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Mã ĐH</th>
+                            <th>Ngày đặt</th>
+                            <th>Khách hàng</th>
+                            <th>SĐT</th>
+                            <th>Tổng tiền</th>
+                            <th>TT Đơn hàng</th>
+                            <th>TT Thanh toán</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Mã ĐH</th>
+                            <th>Ngày đặt</th>
+                            <th>Khách hàng</th>
+                            <th>SĐT</th>
+                            <th>Tổng tiền</th>
+                            <th>TT Đơn hàng</th>
+                            <th>TT Thanh toán</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        {% for order in orders.items %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.order_date|format_datetime('%d/%m/%Y') }}</td>
+                            <td>{{ order.fullname }}</td>
+                            <td>{{ order.phone }}</td>
+                            <td>{{ '{:,.0f}'.format(order.total_price|float) }}đ</td>
+                            <td>
+                                {% if order.status == 'pending' %}
+                                <span class="badge badge-warning">Chờ xác nhận</span>
+                                {% elif order.status == 'processing' %}
+                                <span class="badge badge-info">Đang xử lý</span>
+                                {% elif order.status == 'shipped' %}
+                                <span class="badge badge-primary">Đang giao hàng</span>
+                                {% elif order.status == 'delivered' %}
+                                <span class="badge badge-success">Đã giao hàng</span>
+                                {% elif order.status == 'cancelled' %}
+                                <span class="badge badge-danger">Đã hủy</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if order.payment_status == 'pending' %}
+                                <span class="badge badge-warning">Chờ thanh toán</span>
+                                {% elif order.payment_status == 'paid' %}
+                                <span class="badge badge-success">Đã thanh toán</span>
+                                {% elif order.payment_status == 'refunded' %}
+                                <span class="badge badge-info">Đã hoàn tiền</span>
+                                {% elif order.payment_status == 'failed' %}
+                                <span class="badge badge-danger">Thanh toán thất bại</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.order_detail', order_id=order.id) }}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if order.status != 'cancelled' and order.status != 'delivered' %}
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#updateStatusModal{{ order.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        <!-- Update Status Modal -->
+                        <div class="modal fade" id="updateStatusModal{{ order.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Cập nhật trạng thái đơn hàng #{{ order.id }}</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <form method="post" action="{{ url_for('admin.update_order_status', order_id=order.id) }}">
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label for="status{{ order.id }}">Trạng thái đơn hàng</label>
+                                                <select class="form-control" id="status{{ order.id }}" name="status">
+                                                    <option value="pending" {{ 'selected' if order.status == 'pending' else '' }}>Chờ xác nhận</option>
+                                                    <option value="processing" {{ 'selected' if order.status == 'processing' else '' }}>Đang xử lý</option>
+                                                    <option value="shipped" {{ 'selected' if order.status == 'shipped' else '' }}>Đang giao hàng</option>
+                                                    <option value="delivered" {{ 'selected' if order.status == 'delivered' else '' }}>Đã giao hàng</option>
+                                                    <option value="cancelled" {{ 'selected' if order.status == 'cancelled' else '' }}>Đã hủy</option>
+                                                </select>
+                                            </div>
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle mr-1"></i> Lưu ý: Khi đơn hàng được chuyển sang trạng thái "Đã giao hàng", trạng thái thanh toán của đơn hàng COD sẽ tự động chuyển thành "Đã thanh toán".
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                                            <button type="submit" class="btn btn-primary">Cập nhật</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-4 d-flex justify-content-center">
+                <nav aria-label="Phân trang">
+                    <ul class="pagination">
+                        <li class="page-item {{ 'disabled' if orders.page == 1 else '' }}">
+                            <a class="page-link" href="{{ url_for('admin.orders', page=orders.prev_num, status=current_status) if orders.has_prev else '#' }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+
+                        {% for page_num in orders.iter_pages(left_edge=2, right_edge=2, left_current=1, right_current=2) %}
+                            {% if page_num %}
+                                <li class="page-item {{ 'active' if page_num == orders.page else '' }}">
+                                    <a class="page-link" href="{{ url_for('admin.orders', page=page_num, status=current_status) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <li class="page-item {{ 'disabled' if orders.page == orders.pages else '' }}">
+                            <a class="page-link" href="{{ url_for('admin.orders', page=orders.next_num, status=current_status) if orders.has_next else '#' }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "language": {
+                "lengthMenu": "Hiển thị _MENU_ mục",
+                "zeroRecords": "Không tìm thấy dữ liệu",
+                "info": "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                "infoEmpty": "Hiển thị 0 đến 0 của 0 mục",
+                "infoFiltered": "(lọc từ _MAX_ mục)",
+                "search": "Tìm kiếm:",
+                "paginate": {
+                    "first": "Đầu",
+                    "last": "Cuối",
+                    "next": "Tiếp",
+                    "previous": "Trước"
+                }
+            },
+            "order": [[0, "desc"]]
+        });
+    });
+
+    function exportToExcel() {
+        // Tạo CSV từ bảng
+        let csv = [];
+        let rows = document.querySelectorAll('#dataTable tr');
+
+        for (let i = 0; i < rows.length; i++) {
+            let row = [], cols = rows[i].querySelectorAll('td, th');
+
+            for (let j = 0; j < cols.length - 1; j++) { // Bỏ qua cột thao tác
+                // Xử lý text trong badge
+                if (cols[j].querySelector('.badge')) {
+                    row.push(cols[j].querySelector('.badge').textContent.trim());
+                } else {
+                    row.push(cols[j].textContent.trim());
+                }
+            }
+
+            csv.push(row.join(','));
+        }
+
+        // Tải file CSV
+        let csvContent = 'data:text/csv;charset=utf-8,' + csv.join('\n');
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'danh_sach_don_hang.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function printOrders() {
+        window.print();
+    }
+</script>
+{% endblock %}
