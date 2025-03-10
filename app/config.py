@@ -8,6 +8,8 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dfkbsvbskasbfda')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
+    SESSION_TYPE = 'filesystem'
+
 
     TIMEZONE = os.environ.get('TIMEZONE', 'Asia/Ho_Chi_Minh')
     try:
@@ -45,7 +47,6 @@ class TestingConfig(Config):
         'mysql+pymysql://root:@localhost/petshop_test?charset=utf8mb4'
     )
 
-    # SQLite alternative
     SQLITE_DATABASE_URI = os.environ.get(
         'SQLITE_TEST_DATABASE_URL',
         'sqlite:///petshop_test.sqlite'

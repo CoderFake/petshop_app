@@ -53,6 +53,53 @@ class Product(BaseModel):
         return query.all()
 
 
+    def get_average_rating(self):
+
+        from app.models.feedback import Feedback
+        from sqlalchemy import func
+
+        result = db.session.query(func.avg(Feedback.rating)).filter_by(
+            product_id=self.id, is_deleted=False
+        ).scalar()
+
+        return float(result) if result else 0
+
+    @classmethod
+    def get_featured_products(cls, limit=8):
+        from app.models.feedback import Feedback
+        from sqlalchemy import func, desc
+
+        subquery = db.session.query(
+            Feedback.product_id,
+            func.avg(Feedback.rating).label('avg_rating')
+        ).filter_by(is_deleted=False).group_by(Feedback.product_id).subquery()
+
+        products = cls.query.filter_by(is_deleted=False).outerjoin(
+            subquery, cls.id == subquery.c.product_id
+        ).order_by(
+            desc(subquery.c.avg_rating),
+            desc(cls.created_at)
+        ).limit(limit).all()
+
+        if len(products) < limit:
+            product_ids = [p.id for p in products]
+            more_products = cls.query.filter(
+                cls.id.notin_(product_ids),
+                cls.is_deleted == False
+            ).order_by(
+                desc(cls.created_at)
+            ).limit(limit - len(products)).all()
+
+            products.extend(more_products)
+
+        return products
+
+    def get_product_with_discount(self):
+
+        if hasattr(self, 'compare_price') and self.compare_price and self.compare_price > self.price:
+            return int((1 - self.price / self.compare_price) * 100)
+        return None
+
 class ProductSchema(ma.SQLAlchemySchema):
 
     class Meta:

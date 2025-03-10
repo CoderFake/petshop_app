@@ -37,11 +37,11 @@ def init_db():
 
         if not User.query.first():
             admin = User(
-                name='Administrator',
-                email='admin@example.com',
+                name= os.getenv('ADMIN_NAME', 'hoangdieu'),
+                email=os.getenv('ADMIN_EMAIL', 'hoangdieu22022002@gmail.com'),
                 role_id=admin_role.id
             )
-            admin.password = 'Admin@123'
+            admin.password = os.getenv('ADMIN_PASSWORD', 'Admin@123')
             db.session.add(admin)
             db.session.commit()
 

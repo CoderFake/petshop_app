@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, session, g
 from app.config import config
-from app.extensions import db, migrate, ma
+from app.extensions import db, migrate, ma, se
 import os
 
 
@@ -17,6 +17,7 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    se.init_app(app)
 
     with app.app_context():
         from app.models import (
@@ -24,6 +25,13 @@ def create_app(config_name=None):
             Order, OrderDetail, Feedback, ProductGallery, Permission
         )
 
+    @app.before_request
+    def load_logged_in_user():
+        user_id = session.get('user_id')
+        if user_id is None:
+            g.user = None
+        else:
+            g.user = User.get_by_id(user_id)
 
     from app.routes.main import main
     app.register_blueprint(main)
@@ -37,12 +45,14 @@ def create_app(config_name=None):
     from app.routes.admin import admin
     app.register_blueprint(admin, url_prefix='/admin')
 
+    from app.utils.jinja_filters import register_filters
+    register_filters(app)
+
     from app.commands import register_commands
     register_commands(app)
     register_error_handlers(app)
 
-
-    app.permanent_session_lifetime = os.environ.get('SESSION_TIMEOUT', 86400)
+    app.permanent_session_lifetime = int(os.environ.get('SESSION_TIMEOUT', 86400))
 
     return app
 
