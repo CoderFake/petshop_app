@@ -1,4 +1,4 @@
-from app.models.role import Role, RoleSchema
+from app.models.role import Role, RoleSchema, Permission, PermissionSchema
 from app.models.user import User, UserSchema
 from app.models.category import Category, CategorySchema
 from app.models.product import Product, ProductSchema
@@ -9,6 +9,7 @@ from app.models.gallery import ProductGallery, ProductGallerySchema
 
 __all__ = [
     'Role', 'RoleSchema',
+    'Permission', 'PermissionSchema',
     'User', 'UserSchema',
     'Category', 'CategorySchema',
     'Product', 'ProductSchema',

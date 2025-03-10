@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Đăng ký - Pet Shop{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <h2 class="font-weight-bold text-primary">Đăng ký tài khoản</h2>
+                            <p class="text-muted">Tạo tài khoản mới tại Pet Shop</p>
+                        </div>
+
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="post" action="{{ url_for('auth.register') }}">
+                            <div class="form-group">
+                                <label for="name">Họ tên</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Mật khẩu</label>
+                                <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                                <small class="form-text text-muted">Mật khẩu phải có ít nhất 8 ký tự</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm_password">Xác nhận mật khẩu</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required minlength="8">
+                            </div>
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="terms" required>
+                                <label class="form-check-label" for="terms">Tôi đồng ý với <a href="#">Điều khoản sử dụng</a> và <a href="#">Chính sách bảo mật</a></label>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
+                        </form>
+
+                        <div class="mt-4 text-center">
+                            <p class="mb-0">
+                                Đã có tài khoản? <a href="{{ url_for('auth.login') }}">Đăng nhập</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#confirm_password').on('keyup', function() {
+            var password = $('#password').val();
+            var confirm = $(this).val();
+
+            if (password === confirm) {
+                $(this).removeClass('is-invalid').addClass('is-valid');
+            } else {
+                $(this).removeClass('is-valid').addClass('is-invalid');
+            }
+        });
+
+        $('form').on('submit', function(e) {
+            var password = $('#password').val();
+            var confirm = $('#confirm_password').val();
+
+            if (password !== confirm) {
+                e.preventDefault();
+                alert('Mật khẩu không khớp. Vui lòng kiểm tra lại.');
+            }
+        });
+    });
+</script>
+{% endblock %}

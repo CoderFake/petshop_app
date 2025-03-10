@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Chi tiết đơn hàng #{{ order.id }} - Pet Shop{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-light py-2 px-3">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Trang chủ</a></li>
+                {% if session.get('user_id') %}
+                <li class="breadcrumb-item"><a href="{{ url_for('main.orders') }}">Đơn hàng của tôi</a></li>
+                {% else %}
+                <li class="breadcrumb-item"><a href="{{ url_for('payment.track_order') }}">Theo dõi đơn hàng</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active">Đơn hàng #{{ order.id }}</li>
+            </ol>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 font-weight-bold">Chi tiết đơn hàng #{{ order.id }}</h5>
+                            <span class="badge badge-{{ order.status|status_class }}">
+                                {{ order.status|status_text }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Ngày đặt hàng:</strong> {{ order.order_date|format_datetime }}</p>
+                        <p><strong>Phương thức thanh toán:</strong> {{ order.payment_method|payment_method_text }}</p>
+                        <p><strong>Trạng thái thanh toán:</strong>
+                            <span class="badge badge-{{ order.payment_status|status_class }}">
+                                {{ order.payment_status|status_text }}
+                            </span>
+                        </p>
+                        {% if order.notes %}
+                        <p><strong>Ghi chú:</strong> {{ order.notes }}</p>
+                        {% endif %}
+
+                        <div class="table-responsive mt-4">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-center">Số lượng</th>
+                                        <th class="text-right">Đơn giá</th>
+                                        <th class="text-right">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.order_details %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if item.product.thumbnail %}
+                                                <img src="{{ item.product.thumbnail }}" alt="{{ item.product.title }}" class="mr-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0"><a href="{{ url_for('main.product_detail', product_id=item.product.id) }}">{{ item.product.title }}</a></h6>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">{{ item.quantity }}</td>
+                                        <td class="text-right">{{ item.price|format_currency }}</td>
+                                        <td class="text-right">{{ item.subtotal|format_currency }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-right">Tổng cộng:</th>
+                                        <th class="text-right">{{ order.total_price|format_currency }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        {% if order.status == 'pending' or order.status == 'processing' %}
+                        <div class="mt-4">
+                            <form method="post" action="{{ url_for('payment.cancel_order', order_id=order.id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                                <button type="submit" class="btn btn-danger">Hủy đơn hàng</button>
+
+                                {% if order.payment_method == 'vnpay' and order.payment_status == 'pending' %}
+                                    <a href="{{ url_for('payment.repay', order_id=order.id) }}" class="btn btn-primary ml-2">Thanh toán lại</a>
+                                {% endif %}
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 font-weight-bold">Thông tin giao hàng</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Người nhận:</strong> {{ order.fullname }}</p>
+                        <p><strong>Email:</strong> {{ order.email }}</p>
+                        <p><strong>Điện thoại:</strong> {{ order.phone }}</p>
+                        <p><strong>Địa chỉ:</strong> {{ order.address }}</p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 font-weight-bold">Theo dõi đơn hàng</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="timeline">
+                            <li class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Đơn hàng đã đặt</h6>
+                                    <p class="timeline-text">{{ order.order_date|format_datetime }}</p>
+                                </div>
+                            </li>
+
+                            {% if order.status != 'cancelled' and (order.status != 'pending' or order.payment_status == 'paid') %}
+                            <li class="timeline-item">
+                                <div class="timeline-marker {% if order.status == 'pending' %}timeline-marker-outline{% endif %}"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Đang xử lý</h6>
+                                    {% if order.status != 'pending' %}
+                                    <p class="timeline-text">Đơn hàng của bạn đang được xử lý</p>
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% endif %}
+
+                            {% if order.status == 'shipped' or order.status == 'delivered' %}
+                            <li class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Đang giao hàng</h6>
+                                    <p class="timeline-text">Đơn hàng đang được vận chuyển đến bạn</p>
+                                </div>
+                            </li>
+                            {% endif %}
+
+                            {% if order.status == 'delivered' %}
+                            <li class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Đã giao hàng</h6>
+                                    <p class="timeline-text">Đơn hàng đã được giao thành công</p>
+                                </div>
+                            </li>
+                            {% endif %}
+
+                            {% if order.status == 'cancelled' %}
+                            <li class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Đã hủy</h6>
+                                    <p class="timeline-text">Đơn hàng đã bị hủy</p>
+                                </div>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('main.orders') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left mr-2"></i>Quay lại đơn hàng của tôi
+            </a>
+            {% else %}
+            <a href="{{ url_for('payment.track_order') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left mr-2"></i>Quay lại tra cứu đơn hàng
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 40px;
+        margin-left: 20px;
+        list-style: none;
+    }
+    .timeline:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 20px;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    .timeline-marker {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #3498db;
+        left: -28px;
+        top: 4px;
+    }
+    .timeline-marker-outline {
+        background-color: #ffffff;
+        border: 2px solid #3498db;
+    }
+    .timeline-content {
+        padding-bottom: 10px;
+    }
+    .timeline-title {
+        margin-top: 0;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .timeline-text {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

@@ -11,6 +11,9 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
+    db_url = app.config.get('SQLALCHEMY_DATABASE_URI', 'No database URL configured')
+    app.logger.info(f"Using database: {db_url}")
+
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
@@ -18,21 +21,33 @@ def create_app(config_name=None):
     with app.app_context():
         from app.models import (
             Role, User, Category, Product,
-            Order, OrderDetail, Feedback, ProductGallery
+            Order, OrderDetail, Feedback, ProductGallery, Permission
         )
+
 
     from app.routes.main import main
     app.register_blueprint(main)
+
+    from app.routes.auth import auth
+    app.register_blueprint(auth, url_prefix='/auth')
+
+    from app.routes.payment import payment
+    app.register_blueprint(payment, url_prefix='/payment')
+
+    from app.routes.admin import admin
+    app.register_blueprint(admin, url_prefix='/admin')
 
     from app.commands import register_commands
     register_commands(app)
     register_error_handlers(app)
 
+
+    app.permanent_session_lifetime = os.environ.get('SESSION_TIMEOUT', 86400)
+
     return app
 
 
 def register_error_handlers(app):
-
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('errors/404.html'), 404

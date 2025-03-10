@@ -1,0 +1,35 @@
+XÁC NHẬN ĐƠN HÀNG
+
+Xin chào {{ user.name }},
+
+Cảm ơn bạn đã đặt hàng tại Pet Shop. Chúng tôi đã nhận được đơn hàng của bạn và đang xử lý.
+
+THÔNG TIN ĐƠN HÀNG:
+Mã đơn hàng: #{{ order.id }}
+Ngày đặt hàng: {{ order.get_formatted_order_date() }}
+Trạng thái đơn hàng: {% if order.status == 'pending' %}Chờ xác nhận{% elif order.status == 'processing' %}Đang xử lý{% elif order.status == 'shipped' %}Đang giao hàng{% elif order.status == 'delivered' %}Đã giao hàng{% elif order.status == 'cancelled' %}Đã hủy{% endif %}
+Phương thức thanh toán: {% if order.payment_method == 'cod' %}Thanh toán khi nhận hàng (COD){% elif order.payment_method == 'vnpay' %}Thanh toán qua VNPay{% endif %}
+
+CHI TIẾT ĐƠN HÀNG:
+{% for item in order.order_details %}
+- {{ item.product.title }} (SL: {{ item.quantity }}) x {{ '{:,.0f}'.format(item.price) }}đ = {{ '{:,.0f}'.format(item.subtotal) }}đ
+{% endfor %}
+
+TỔNG CỘNG: {{ '{:,.0f}'.format(order.total_price) }}đ
+
+THÔNG TIN GIAO HÀNG:
+Người nhận: {{ order.fullname }}
+Địa chỉ: {{ order.address }}
+Số điện thoại: {{ order.phone }}
+Email: {{ order.email }}
+
+Để xem chi tiết đơn hàng, vui lòng truy cập:
+{{ url_for('payment.order_detail', order_id=order.id, _external=True) }}
+
+Nếu bạn có bất kỳ câu hỏi hoặc thắc mắc nào, vui lòng liên hệ với chúng tôi qua email support@petshop.com hoặc số điện thoại (028) 1234 5678.
+
+Trân trọng,
+Đội ngũ Pet Shop
+
+© 2025 Pet Shop. Tất cả các quyền được bảo lưu.
+1150 Đường Láng, Đống Đa, Hà Nội

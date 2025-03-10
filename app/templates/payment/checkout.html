@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Thanh toán - Pet Shop{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-light py-2 px-3">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.cart') }}">Giỏ hàng</a></li>
+                <li class="breadcrumb-item active">Thanh toán</li>
+            </ol>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" action="{{ url_for('payment.checkout') }}" id="checkoutForm">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0 font-weight-bold">Thông tin giao hàng</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="fullname">Họ tên <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="fullname" name="fullname" value="{{ user.name if user else '' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="email">Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email if user else '' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="phone">Số điện thoại <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="phone" name="phone" value="{{ user.phone if user and user.phone else '' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="address">Địa chỉ giao hàng <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="address" name="address" rows="3" required>{{ user.address if user and user.address else '' }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="notes">Ghi chú</label>
+                                        <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0 font-weight-bold">Phương thức thanh toán</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod" checked>
+                                <label class="form-check-label" for="cod">
+                                    <i class="fas fa-money-bill-wave text-success mr-2"></i>Thanh toán khi nhận hàng (COD)
+                                </label>
+                                <p class="text-muted small ml-4 mb-0">Thanh toán bằng tiền mặt khi nhận hàng</p>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" id="vnpay" value="vnpay">
+                                <label class="form-check-label" for="vnpay">
+                                    <i class="fas fa-credit-card text-primary mr-2"></i>Thanh toán online qua VNPay
+                                </label>
+                                <p class="text-muted small ml-4 mb-0">Thanh toán an toàn qua cổng thanh toán VNPay</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0 font-weight-bold">Đơn hàng của bạn</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="order-summary">
+                                {% for item in cart_items %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h6 class="mb-0">{{ item.product.title }}</h6>
+                                        <p class="text-muted small mb-0">{{ item.quantity }} x {{ '{:,.0f}'.format(item.price) }}đ</p>
+                                    </div>
+                                    <span>{{ '{:,.0f}'.format(item.subtotal) }}đ</span>
+                                </div>
+                                {% endfor %}
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between">
+                                    <span>Tạm tính:</span>
+                                    <span>{{ '{:,.0f}'.format(total_price) }}đ</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Phí vận chuyển:</span>
+                                    <span>0đ</span>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="font-weight-bold">Tổng cộng:</span>
+                                    <span class="font-weight-bold text-primary" style="font-size: 1.2rem;">{{ '{:,.0f}'.format(total_price) }}đ</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary btn-block btn-lg">Đặt hàng</button>
+                                <a href="{{ url_for('main.cart') }}" class="btn btn-outline-secondary btn-block">Quay lại giỏ hàng</a>
+                            </div>
+
+                            <div class="mt-3">
+                                <p class="mb-0 text-muted small text-center">Bằng cách nhấn "Đặt hàng", bạn đồng ý với các <a href="#">Điều khoản & Điều kiện</a> của Pet Shop</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if not session.get('user_id') %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <p class="text-center mb-3">Bạn đã có tài khoản?</p>
+                            <div class="d-grid">
+                                <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-outline-primary">Đăng nhập</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#checkoutForm').on('submit', function(e) {
+            var fullname = $('#fullname').val();
+            var email = $('#email').val();
+            var phone = $('#phone').val();
+            var address = $('#address').val();
+
+            if (!fullname || !email || !phone || !address) {
+                e.preventDefault();
+                alert('Vui lòng điền đầy đủ thông tin giao hàng.');
+                return false;
+            }
+
+            if (!/^\d{9,11}$/.test(phone)) {
+                e.preventDefault();
+                alert('Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 chữ số.');
+                return false;
+            }
+
+            if (!/\S+@\S+\.\S+/.test(email)) {
+                e.preventDefault();
+                alert('Email không hợp lệ. Vui lòng kiểm tra lại.');
+                return false;
+            }
+
+            return true;
+        });
+
+        $('#phone').on('input', function() {
+            $(this).val($(this).val().replace(/[^0-9]/g, ''));
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Chỉnh sửa thông tin - Pet Shop{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body text-center">
+                        {% if user.avatar %}
+                        <img src="{{ user.avatar }}" alt="{{ user.name }}" class="img-fluid rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-primary text-white rounded-circle mb-3 d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 120px; font-size: 48px;">
+                            {{ user.name[0] | upper }}
+                        </div>
+                        {% endif %}
+                        <h5 class="mb-1">{{ user.name }}</h5>
+                        <p class="text-muted mb-3">{{ user.email }}</p>
+                        <div class="d-grid">
+                            <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-outline-primary btn-sm mb-2 active">Chỉnh sửa thông tin</a>
+                            <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-secondary btn-sm">Đổi mật khẩu</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="list-group shadow-sm">
+                    <a href="{{ url_for('auth.profile') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user mr-2"></i> Thông tin tài khoản
+                    </a>
+                    <a href="{{ url_for('main.orders') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shopping-bag mr-2"></i> Đơn hàng của tôi
+                    </a>
+                    <a href="{{ url_for('main.wishlist') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-heart mr-2"></i> Sản phẩm yêu thích
+                    </a>
+                    <a href="{{ url_for('main.addresses') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-map-marker-alt mr-2"></i> Sổ địa chỉ
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="list-group-item list-group-item-action text-danger">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Chỉnh sửa thông tin</h5>
+                    </div>
+                    <div class="card-body">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="post" action="{{ url_for('auth.edit_profile') }}">
+                            <div class="form-group">
+                                <label for="name">Họ tên</label>
+                                <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly disabled>
+                                <small class="form-text text-muted">Email không thể thay đổi.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Số điện thoại</label>
+                                <input type="text" class="form-control" id="phone" name="phone" value="{{ user.phone or '' }}" pattern="[0-9]*">
+                                <small class="form-text text-muted">Chỉ nhập số, không có khoảng trắng hoặc ký tự đặc biệt.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="address">Địa chỉ</label>
+                                <textarea class="form-control" id="address" name="address" rows="3">{{ user.address or '' }}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar">URL Ảnh đại diện (tùy chọn)</label>
+                                <input type="url" class="form-control" id="avatar" name="avatar" value="{{ user.avatar or '' }}">
+                                <small class="form-text text-muted">Nhập URL hình ảnh trực tuyến cho ảnh đại diện của bạn.</small>
+                            </div>
+                            <div class="form-group mt-4">
+                                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-secondary ml-2">Hủy</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#phone').on('input', function() {
+            $(this).val($(this).val().replace(/[^0-9]/g, ''));
+        });
+    });
+</script>
+{% endblock %}

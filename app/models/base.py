@@ -1,6 +1,7 @@
 from datetime import datetime
 from app.extensions import db
 from sqlalchemy import func
+from app.utils.datetime_helpers import get_current_time, utc_to_local
 
 
 class BaseModel(db.Model):
@@ -14,18 +15,15 @@ class BaseModel(db.Model):
 
     @classmethod
     def get_by_id(cls, id):
-        """Get model by ID, excluding deleted records."""
         return cls.query.filter_by(id=id, is_deleted=False).first()
 
     @classmethod
     def get_all(cls, include_deleted=False):
-        """Get all records, optionally including deleted ones."""
         if include_deleted:
             return cls.query.all()
         return cls.query.filter_by(is_deleted=False).all()
 
     def soft_delete(self):
-        """Mark record as deleted without removing from database."""
         self.is_deleted = True
         db.session.commit()
 
@@ -44,3 +42,13 @@ class BaseModel(db.Model):
             if hasattr(self, key):
                 setattr(self, key, value)
         return self.save()
+
+    def get_local_created_at(self):
+        if self.created_at:
+            return utc_to_local(self.created_at)
+        return None
+
+    def get_local_updated_at(self):
+        if self.updated_at:
+            return utc_to_local(self.updated_at)
+        return None

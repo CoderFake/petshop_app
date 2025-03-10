@@ -1,0 +1,320 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Cài đặt - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Cài đặt hệ thống</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Roles Card -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Quản lý vai trò</h6>
+                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addRoleModal">
+                        <i class="fas fa-plus fa-sm"></i> Thêm vai trò
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên vai trò</th>
+                                    <th>Mô tả</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for role in roles %}
+                                <tr>
+                                    <td>{{ role.id }}</td>
+                                    <td>{{ role.name }}</td>
+                                    <td>{{ role.description or '' }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin.role_permissions', role_id=role.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-key fa-sm"></i> Phân quyền
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-warning"
+                                                data-toggle="modal" data-target="#editRoleModal{{ role.id }}">
+                                            <i class="fas fa-edit fa-sm"></i>
+                                        </button>
+                                        {% if role.name != 'Admin' and role.name != 'User' %}
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                                data-toggle="modal" data-target="#deleteRoleModal{{ role.id }}">
+                                            <i class="fas fa-trash fa-sm"></i>
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- Edit Role Modal -->
+                                <div class="modal fade" id="editRoleModal{{ role.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Chỉnh sửa vai trò</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <form method="post" action="{{ url_for('admin.edit_role', role_id=role.id) }}">
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label for="roleName{{ role.id }}">Tên vai trò</label>
+                                                        <input type="text" class="form-control" id="roleName{{ role.id }}"
+                                                               name="name" value="{{ role.name }}" required
+                                                               {% if role.name == 'Admin' or role.name == 'User' %}readonly{% endif %}>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="roleDescription{{ role.id }}">Mô tả</label>
+                                                        <textarea class="form-control" id="roleDescription{{ role.id }}"
+                                                                  name="description" rows="3">{{ role.description or '' }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                                                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Delete Role Modal -->
+                                {% if role.name != 'Admin' and role.name != 'User' %}
+                                <div class="modal fade" id="deleteRoleModal{{ role.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Xác nhận xóa</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Bạn có chắc chắn muốn xóa vai trò <strong>{{ role.name }}</strong>?</p>
+                                                <p class="text-danger">Lưu ý: Việc này có thể ảnh hưởng đến các người dùng đang sử dụng vai trò này.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                                                <form method="post" action="{{ url_for('admin.delete_role', role_id=role.id) }}">
+                                                    <button type="submit" class="btn btn-danger">Xóa</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permissions Card -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Quản lý quyền</h6>
+                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addPermissionModal">
+                        <i class="fas fa-plus fa-sm"></i> Thêm quyền
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên quyền</th>
+                                    <th>Mô tả</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for permission in permissions %}
+                                <tr>
+                                    <td>{{ permission.id }}</td>
+                                    <td>{{ permission.name }}</td>
+                                    <td>{{ permission.description or '' }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-warning"
+                                                data-toggle="modal" data-target="#editPermissionModal{{ permission.id }}">
+                                            <i class="fas fa-edit fa-sm"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                                data-toggle="modal" data-target="#deletePermissionModal{{ permission.id }}">
+                                            <i class="fas fa-trash fa-sm"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <!-- Edit Permission Modal -->
+                                <div class="modal fade" id="editPermissionModal{{ permission.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Chỉnh sửa quyền</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <form method="post" action="{{ url_for('admin.edit_permission', permission_id=permission.id) }}">
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label for="permissionName{{ permission.id }}">Tên quyền</label>
+                                                        <input type="text" class="form-control" id="permissionName{{ permission.id }}"
+                                                               name="name" value="{{ permission.name }}" required>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="permissionDescription{{ permission.id }}">Mô tả</label>
+                                                        <textarea class="form-control" id="permissionDescription{{ permission.id }}"
+                                                                  name="description" rows="3">{{ permission.description or '' }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                                                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Delete Permission Modal -->
+                                <div class="modal fade" id="deletePermissionModal{{ permission.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Xác nhận xóa</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Bạn có chắc chắn muốn xóa quyền <strong>{{ permission.name }}</strong>?</p>
+                                                <p class="text-danger">Lưu ý: Việc này sẽ xóa quyền này khỏi tất cả các vai trò đang sử dụng nó.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                                                <form method="post" action="{{ url_for('admin.delete_permission', permission_id=permission.id) }}">
+                                                    <button type="submit" class="btn btn-danger">Xóa</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Role Modal -->
+<div class="modal fade" id="addRoleModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm vai trò mới</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" action="{{ url_for('admin.add_role') }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="newRoleName">Tên vai trò</label>
+                        <input type="text" class="form-control" id="newRoleName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newRoleDescription">Mô tả</label>
+                        <textarea class="form-control" id="newRoleDescription" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Thêm mới</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Permission Modal -->
+<div class="modal fade" id="addPermissionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm quyền mới</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" action="{{ url_for('admin.add_permission') }}">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="newPermissionName">Tên quyền</label>
+                        <input type="text" class="form-control" id="newPermissionName" name="name" required>
+                        <small class="form-text text-muted">Ví dụ: user_view, product_edit, etc.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPermissionDescription">Mô tả</label>
+                        <textarea class="form-control" id="newPermissionDescription" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Thêm mới</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('.table').DataTable({
+            "language": {
+                "lengthMenu": "Hiển thị _MENU_ mục",
+                "zeroRecords": "Không tìm thấy dữ liệu",
+                "info": "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                "infoEmpty": "Hiển thị 0 đến 0 của 0 mục",
+                "infoFiltered": "(lọc từ _MAX_ mục)",
+                "search": "Tìm kiếm:",
+                "paginate": {
+                    "first": "Đầu",
+                    "last": "Cuối",
+                    "next": "Tiếp",
+                    "previous": "Trước"
+                }
+            },
+            "pageLength": 10,
+            "order": [[0, "asc"]]
+        });
+    });
+</script>
+{% endblock %}

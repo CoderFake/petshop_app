@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Theo dõi đơn hàng - Pet Shop{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h3 class="mb-0 font-weight-bold text-center">Theo dõi đơn hàng</h3>
+                    </div>
+                    <div class="card-body p-5">
+                        <p class="text-center text-muted mb-4">Vui lòng nhập mã đơn hàng và email để kiểm tra trạng thái đơn hàng của bạn.</p>
+
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="post" action="{{ url_for('payment.track_order') }}">
+                            <div class="form-group">
+                                <label for="order_id">Mã đơn hàng</label>
+                                <input type="text" class="form-control" id="order_id" name="order_id" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <small class="form-text text-muted">Email bạn đã sử dụng khi đặt hàng.</small>
+                            </div>
+                            <div class="form-group mt-4">
+                                <button type="submit" class="btn btn-primary btn-block">Tra cứu đơn hàng</button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <p class="mb-0">
+                                <a href="{{ url_for('main.index') }}">Quay lại trang chủ</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <p class="mb-0">
+                        Đã có tài khoản? <a href="{{ url_for('auth.login') }}">Đăng nhập</a> để xem tất cả đơn hàng của bạn.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

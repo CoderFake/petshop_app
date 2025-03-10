@@ -1,5 +1,7 @@
 import os
+import sys
 from dotenv import load_dotenv
+from app.config import config
 from app import create_app
 from app.extensions import db
 from app.models import (
@@ -8,7 +10,20 @@ from app.models import (
 )
 
 load_dotenv()
-app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+
+use_sqlite = '--sql' in sys.argv
+use_mysql = '--mysql' in sys.argv
+
+config_name = os.getenv('FLASK_CONFIG') or 'default'
+app_config = config[config_name]
+
+if use_sqlite:
+    print("Using SQLite database")
+    app_config = app_config.use_sqlite()
+elif use_mysql:
+    print("Using MySQL database")
+
+app = create_app(config_name)
 
 @app.cli.command('init-db')
 def init_db():
@@ -32,6 +47,7 @@ def init_db():
 
     print('Database initialized successfully!')
 
+
 @app.cli.command('create-sample-data')
 def create_sample_data():
     if Product.query.count() > 0:
@@ -48,8 +64,8 @@ def create_sample_data():
     db.session.add_all(categories)
     db.session.commit()
 
-
     print('Sample data created successfully!')
+
 
 @app.shell_context_processor
 def make_shell_context():
@@ -65,5 +81,14 @@ def make_shell_context():
         'ProductGallery': ProductGallery
     }
 
+
 if __name__ == '__main__':
+    use_sqlite = '--sql' in sys.argv
+    use_mysql = '--mysql' in sys.argv
+
+    if use_sqlite and '--sql' in sys.argv:
+        sys.argv.remove('--sql')
+    if use_mysql and '--mysql' in sys.argv:
+        sys.argv.remove('--mysql')
+
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

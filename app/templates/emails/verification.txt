@@ -1,0 +1,15 @@
+Xin chào {{ user.name }},
+
+Cảm ơn bạn đã đăng ký tài khoản tại Pet Shop. Để hoàn tất quá trình đăng ký, vui lòng xác thực tài khoản của bạn bằng cách nhấp vào đường dẫn sau:
+
+{{ verification_url }}
+
+Lưu ý: Liên kết xác thực này sẽ hết hạn sau 24 giờ.
+
+Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.
+
+Trân trọng,
+Đội ngũ Pet Shop
+
+© 2025 Pet Shop. Tất cả các quyền được bảo lưu.
+1150 Đường Láng, Đống Đa, Hà Nội

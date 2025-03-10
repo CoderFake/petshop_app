@@ -1,0 +1,166 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Quản lý quyền - {{ role.name }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Quản lý quyền cho vai trò: {{ role.name }}</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách quyền</h6>
+            <a href="{{ url_for('admin.settings') }}" class="btn btn-sm btn-secondary">
+                <i class="fas fa-arrow-left fa-sm"></i> Quay lại
+            </a>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('admin.role_permissions', role_id=role.id) }}">
+                <div class="form-group">
+                    <label class="font-weight-bold mb-3">Các quyền hiện có:</label>
+
+                    <div class="row">
+                        {% for permission in permissions %}
+                        <div class="col-md-4 mb-3">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input"
+                                       id="permission{{ permission.id }}"
+                                       name="permissions"
+                                       value="{{ permission.id }}"
+                                       {% if permission in role.permissions %}checked{% endif %}>
+                                <label class="custom-control-label" for="permission{{ permission.id }}">
+                                    {{ permission.name }}
+                                    <small class="text-muted d-block">{{ permission.description }}</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save fa-sm"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Thông tin vai trò</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <tr>
+                        <th style="width: 200px;">ID</th>
+                        <td>{{ role.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Tên vai trò</th>
+                        <td>{{ role.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Mô tả</th>
+                        <td>{{ role.description or 'Không có mô tả' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Ngày tạo</th>
+                        <td>{{ role.created_at|format_datetime }}</td>
+                    </tr>
+                    <tr>
+                        <th>Cập nhật lần cuối</th>
+                        <td>{{ role.updated_at|format_datetime }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+
+        $('#selectAll').on('change', function() {
+            $('input[name="permissions"]').prop('checked', $(this).prop('checked'));
+        });
+
+        const permissionGroups = {
+            'user_': 'Quản lý người dùng',
+            'product_': 'Quản lý sản phẩm',
+            'category_': 'Quản lý danh mục',
+            'order_': 'Quản lý đơn hàng',
+            'feedback_': 'Quản lý đánh giá',
+            'stats_': 'Thống kê báo cáo'
+        };
+
+
+        function organizePermissionsByGroup() {
+            const container = $('#permissions-container');
+
+            container.empty();
+            const accordion = $('<div class="accordion" id="permissionAccordion"></div>');
+
+            Object.entries(permissionGroups).forEach(([prefix, groupName], index) => {
+                const groupId = `permission-group-${index}`;
+                const groupPermissions = $('input[name="permissions"]').filter(function() {
+                    return $(this).next('label').text().trim().startsWith(prefix);
+                });
+
+                if (groupPermissions.length > 0) {
+                    const card = $(`
+                        <div class="card">
+                            <div class="card-header" id="heading${index}">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left" type="button"
+                                            data-toggle="collapse" data-target="#${groupId}"
+                                            aria-expanded="true" aria-controls="${groupId}">
+                                        ${groupName}
+                                    </button>
+                                </h2>
+                            </div>
+                            <div id="${groupId}" class="collapse show"
+                                aria-labelledby="heading${index}" data-parent="#permissionAccordion">
+                                <div class="card-body">
+                                    <div class="row" id="${groupId}-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+
+                    accordion.append(card);
+
+                    groupPermissions.each(function() {
+                        const checkbox = $(this);
+                        const label = checkbox.next('label');
+
+                        const wrapper = $('<div class="col-md-6 mb-3"></div>');
+                        wrapper.append(checkbox.parent());
+                        $(`#${groupId}-container`).append(wrapper);
+                    });
+                }
+            });
+
+            container.append(accordion);
+        }
+
+        organizePermissionsByGroup();
+    });
+</script>
+{% endblock %}

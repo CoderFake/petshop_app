@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Thông tin tài khoản - Pet Shop{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body text-center">
+                        {% if user.avatar %}
+                        <img src="{{ user.avatar }}" alt="{{ user.name }}" class="img-fluid rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-primary text-white rounded-circle mb-3 d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 120px; font-size: 48px;">
+                            {{ user.name[0] | upper }}
+                        </div>
+                        {% endif %}
+                        <h5 class="mb-1">{{ user.name }}</h5>
+                        <p class="text-muted mb-3">{{ user.email }}</p>
+                        <div class="d-grid">
+                            <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-outline-primary btn-sm mb-2">Chỉnh sửa thông tin</a>
+                            <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-secondary btn-sm">Đổi mật khẩu</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="list-group shadow-sm">
+                    <a href="{{ url_for('auth.profile') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-user mr-2"></i> Thông tin tài khoản
+                    </a>
+                    <a href="{{ url_for('main.orders') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shopping-bag mr-2"></i> Đơn hàng của tôi
+                    </a>
+                    <a href="{{ url_for('main.wishlist') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-heart mr-2"></i> Sản phẩm yêu thích
+                    </a>
+                    <a href="{{ url_for('main.addresses') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-map-marker-alt mr-2"></i> Sổ địa chỉ
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="list-group-item list-group-item-action text-danger">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Thông tin tài khoản</h5>
+                    </div>
+                    <div class="card-body">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="text-muted small">Họ tên</label>
+                                    <p class="mb-3">{{ user.name }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="text-muted small">Email</label>
+                                    <p class="mb-3">{{ user.email }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="text-muted small">Số điện thoại</label>
+                                    <p class="mb-3">{% if user.phone %}{{ user.phone }}{% else %}<span class="text-muted">Chưa cập nhật</span>{% endif %}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="text-muted small">Vai trò</label>
+                                    <p class="mb-3">{{ user.role.name }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="text-muted small">Địa chỉ</label>
+                                    <p class="mb-3">{% if user.address %}{{ user.address }}{% else %}<span class="text-muted">Chưa cập nhật</span>{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-3">
+                            <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary">Chỉnh sửa thông tin</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Đơn hàng gần đây</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if user.orders %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã đơn hàng</th>
+                                            <th>Ngày đặt</th>
+                                            <th>Tổng tiền</th>
+                                            <th>Trạng thái</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for order in user.orders[:5] %}
+                                        <tr>
+                                            <td>#{{ order.id }}</td>
+                                            <td>{{ order.order_date.strftime('%d/%m/%Y') }}</td>
+                                            <td>{{ '{:,.0f}'.format(order.total_price|float) }}đ</td>
+                                            <td>
+                                                {% if order.status == 'pending' %}
+                                                <span class="badge badge-warning">Chờ xác nhận</span>
+                                                {% elif order.status == 'processing' %}
+                                                <span class="badge badge-info">Đang xử lý</span>
+                                                {% elif order.status == 'shipped' %}
+                                                <span class="badge badge-primary">Đang giao hàng</span>
+                                                {% elif order.status == 'delivered' %}
+                                                <span class="badge badge-success">Đã giao hàng</span>
+                                                {% elif order.status == 'cancelled' %}
+                                                <span class="badge badge-danger">Đã hủy</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('main.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% if user.orders|length > 5 %}
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('main.orders') }}" class="btn btn-outline-primary btn-sm">Xem tất cả đơn hàng</a>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                                <p class="mb-0">Bạn chưa có đơn hàng nào.</p>
+                                <a href="{{ url_for('main.products') }}" class="btn btn-primary mt-3">Mua sắm ngay</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
