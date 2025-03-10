@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}Liên hệ - Pet Shop{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Section -->
+<div class="bg-light py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-light mb-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Trang chủ</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Liên hệ</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Hero Section -->
+<section class="py-5 bg-primary text-white text-center">
+    <div class="container">
+        <h1 class="display-4 font-weight-bold mb-3">Liên hệ với chúng tôi</h1>
+        <p class="lead mb-4">Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn</p>
+    </div>
+</section>
+
+<!-- Contact Info Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Address -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="icon-circle bg-primary text-white mx-auto mb-4">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h5 class="card-title">Địa chỉ</h5>
+                        <p class="card-text">1150 Đường Láng, Đống Đa, Hà Nội</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="icon-circle bg-primary text-white mx-auto mb-4">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <h5 class="card-title">Điện thoại</h5>
+                        <p class="card-text">0387367162</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="icon-circle bg-primary text-white mx-auto mb-4">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h5 class="card-title">Email</h5>
+                        <p class="card-text">info@petshop.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Form Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-5">
+                            <h2 class="font-weight-bold">Gửi tin nhắn</h2>
+                            <p class="text-muted">Vui lòng điền thông tin của bạn và chúng tôi sẽ liên hệ lại sớm nhất có thể</p>
+                        </div>
+
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="post" action="{{ url_for('main.contact') }}">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="name">Họ tên</label>
+                                        <input type="text" class="form-control" id="name" name="name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Số điện thoại</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="subject">Tiêu đề</label>
+                                <input type="text" class="form-control" id="subject" name="subject" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Nội dung tin nhắn</label>
+                                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                            </div>
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">Gửi tin nhắn</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center font-weight-bold mb-5">Bản đồ</h2>
+        <div class="card border-0 shadow">
+            <div class="card-body p-0">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.2557669799844!2d105.80262967588752!3d21.02140258062073!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab6ceda6cbff%3A0xd536291cbc5e19ef!2zMTE1MCDEkC4gTMOhbmcsIMSQ4buRbmcgxJBhLCBIw6AgTuG7mWk!5e0!3m2!1svi!2s!4v1710132615972!5m2!1svi!2s" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Business Hours Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h2 class="font-weight-bold mb-4">Giờ làm việc</h2>
+                <div class="card border-0 shadow">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Thứ Hai - Thứ Sáu:</strong>
+                                    <span>8:00 - 20:00</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Thứ Bảy:</strong>
+                                    <span>9:00 - 18:00</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Chủ Nhật:</strong>
+                                    <span>9:00 - 16:00</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Ngày lễ:</strong>
+                                    <span>10:00 - 15:00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-info-circle mr-2"></i> Lưu ý: Giờ làm việc có thể thay đổi vào các dịp lễ đặc biệt. Vui lòng gọi trước để xác nhận.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .icon-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+    }
+
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('form').on('submit', function(e) {
+            var name = $('#name').val();
+            var email = $('#email').val();
+            var phone = $('#phone').val();
+            var subject = $('#subject').val();
+            var message = $('#message').val();
+
+            if (!name || !email || !phone || !subject || !message) {
+                e.preventDefault();
+                showNotification('warning', 'Vui lòng điền đầy đủ thông tin liên hệ.');
+                return false;
+            }
+
+            if (!/\S+@\S+\.\S+/.test(email)) {
+                e.preventDefault();
+                showNotification('warning', 'Email không hợp lệ. Vui lòng kiểm tra lại.');
+                return false;
+            }
+
+            if (!/^\d{9,11}$/.test(phone.replace(/[^0-9]/g, ''))) {
+                e.preventDefault();
+                showNotification('warning', 'Số điện thoại không hợp lệ. Vui lòng nhập từ 9-11 chữ số.');
+                return false;
+            }
+
+            return true;
+        });
+
+        $('#phone').on('input', function() {
+            $(this).val($(this).val().replace(/[^0-9]/g, ''));
+        });
+    });
+</script>
+{% endblock %}

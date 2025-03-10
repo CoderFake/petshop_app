@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Đơn hàng của tôi - Pet Shop{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Section -->
+<div class="bg-light py-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-light mb-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('auth.profile') }}">Tài khoản</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Đơn hàng của tôi</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Orders Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body text-center">
+                        {% if g.user.avatar %}
+                        <img src="{{ g.user.avatar }}" alt="{{ g.user.name }}" class="img-fluid rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-primary text-white rounded-circle mb-3 d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 120px; font-size: 48px;">
+                            {{ g.user.name[0] | upper }}
+                        </div>
+                        {% endif %}
+                        <h5 class="mb-1">{{ g.user.name }}</h5>
+                        <p class="text-muted mb-3">{{ g.user.email }}</p>
+                        <div class="d-grid">
+                            <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-outline-primary btn-sm mb-2">Chỉnh sửa thông tin</a>
+                            <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-secondary btn-sm">Đổi mật khẩu</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="list-group shadow-sm">
+                    <a href="{{ url_for('auth.profile') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user mr-2"></i> Thông tin tài khoản
+                    </a>
+                    <a href="{{ url_for('main.orders') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-shopping-bag mr-2"></i> Đơn hàng của tôi
+                    </a>
+                    <a href="{{ url_for('main.wishlist') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-heart mr-2"></i> Sản phẩm yêu thích
+                    </a>
+                    <a href="{{ url_for('main.addresses') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-map-marker-alt mr-2"></i> Sổ địa chỉ
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="list-group-item list-group-item-action text-danger">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+
+            <!-- Orders Content -->
+            <div class="col-md-9">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Đơn hàng của tôi</h5>
+                    </div>
+                    <div class="card-body">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <!-- Status Filter -->
+                        <div class="mb-4">
+                            <div class="btn-group">
+                                <a href="{{ url_for('main.orders') }}" class="btn btn-outline-primary {{ 'active' if not request.args.get('status') }}">Tất cả</a>
+                                <a href="{{ url_for('main.orders', status='pending') }}" class="btn btn-outline-primary {{ 'active' if request.args.get('status') == 'pending' }}">Chờ xác nhận</a>
+                                <a href="{{ url_for('main.orders', status='processing') }}" class="btn btn-outline-primary {{ 'active' if request.args.get('status') == 'processing' }}">Đang xử lý</a>
+                                <a href="{{ url_for('main.orders', status='shipped') }}" class="btn btn-outline-primary {{ 'active' if request.args.get('status') == 'shipped' }}">Đang giao</a>
+                                <a href="{{ url_for('main.orders', status='delivered') }}" class="btn btn-outline-primary {{ 'active' if request.args.get('status') == 'delivered' }}">Đã giao</a>
+                                <a href="{{ url_for('main.orders', status='cancelled') }}" class="btn btn-outline-primary {{ 'active' if request.args.get('status') == 'cancelled' }}">Đã hủy</a>
+                            </div>
+                        </div>
+
+                        {% if orders.items %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Mã đơn hàng</th>
+                                        <th>Ngày đặt</th>
+                                        <th>Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thanh toán</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders.items %}
+                                    <tr>
+                                        <td>#{{ order.id }}</td>
+                                        <td>{{ order.order_date|format_datetime('%d/%m/%Y') }}</td>
+                                        <td>{{ order.total_price|format_currency }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ order.status|status_class }}">
+                                                {{ order.status|status_text }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-{{ order.payment_status|status_class }}">
+                                                {{ order.payment_status|status_text }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('main.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye mr-1"></i> Chi tiết
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if orders.pages > 1 %}
+                        <div class="mt-4 d-flex justify-content-center">
+                            <nav aria-label="Phân trang">
+                                <ul class="pagination">
+                                    <li class="page-item {{ 'disabled' if orders.page == 1 else '' }}">
+                                        <a class="page-link" href="{{ url_for('main.orders', page=orders.prev_num, status=request.args.get('status', '')) if orders.has_prev else '#' }}">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+
+                                    {% for page_num in orders.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                        {% if page_num %}
+                                            <li class="page-item {{ 'active' if page_num == orders.page else '' }}">
+                                                <a class="page-link" href="{{ url_for('main.orders', page=page_num, status=request.args.get('status', '')) }}">
+                                                    {{ page_num }}
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    <li class="page-item {{ 'disabled' if orders.page == orders.pages else '' }}">
+                                        <a class="page-link" href="{{ url_for('main.orders', page=orders.next_num, status=request.args.get('status', '')) if orders.has_next else '#' }}">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-bag fa-4x text-muted mb-3"></i>
+                            <h4>Không có đơn hàng nào</h4>
+                            <p class="text-muted mb-4">Bạn chưa có đơn hàng nào trong mục này</p>
+                            <a href="{{ url_for('main.products') }}" class="btn btn-primary">Mua sắm ngay</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

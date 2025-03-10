@@ -17,7 +17,7 @@
                 <div class="carousel-caption d-none d-md-block">
                     <h2 class="display-4 font-weight-bold">Chào mừng đến với Pet Shop</h2>
                     <p class="lead">Nơi tốt nhất dành cho thú cưng của bạn</p>
-                    <a href="#" class="btn btn-primary btn-lg">Mua sắm ngay</a>
+                    <a href="{{ url_for('main.products') }}" class="btn btn-primary btn-lg">Mua sắm ngay</a>
                 </div>
             </div>
             <div class="carousel-item">
@@ -25,7 +25,7 @@
                 <div class="carousel-caption d-none d-md-block">
                     <h2 class="display-4 font-weight-bold">Sản phẩm chất lượng cao</h2>
                     <p class="lead">Đảm bảo an toàn và sức khỏe cho thú cưng</p>
-                    <a href="#" class="btn btn-primary btn-lg">Khám phá</a>
+                    <a href="{{ url_for('main.products') }}" class="btn btn-primary btn-lg">Khám phá</a>
                 </div>
             </div>
             <div class="carousel-item">
@@ -33,7 +33,7 @@
                 <div class="carousel-caption d-none d-md-block">
                     <h2 class="display-4 font-weight-bold">Dịch vụ chăm sóc thú cưng</h2>
                     <p class="lead">Đội ngũ nhân viên tận tâm và chuyên nghiệp</p>
-                    <a href="#" class="btn btn-primary btn-lg">Xem dịch vụ</a>
+                    <a href="{{ url_for('main.service') }}" class="btn btn-primary btn-lg">Xem dịch vụ</a>
                 </div>
             </div>
         </div>
@@ -100,36 +100,24 @@
             <p class="text-muted">Khám phá các sản phẩm chất lượng cao cho thú cưng của bạn</p>
         </div>
         <div class="row">
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card category-card border-0 shadow-sm">
-                    <img src="{{ url_for('static', filename='img/category-dogs.jpeg') }}" class="card-img-top" alt="Dogs">
-                    <div class="card-body text-center">
-                        <h4 class="card-title">Chó Cưng</h4>
-                        <p class="card-text">Thức ăn, đồ chơi & phụ kiện cho chó</p>
-                        <a href="#" class="btn btn-outline-primary">Xem thêm</a>
+            {% if categories %}
+                {% for category in categories %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card category-card border-0 shadow-sm">
+                        <img src="{{ url_for('static', filename='img/category-' + category.name.lower().replace(' ', '-') + '.jpeg') }}" class="card-img-top" alt="{{ category.name }}" onerror="this.src='{{ url_for('static', filename='img/category-placeholder.jpeg') }}'">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ category.name }}</h4>
+                            <p class="card-text">Sản phẩm chất lượng cao dành cho {{ category.name }}</p>
+                            <a href="{{ url_for('main.category', category_id=category.id) }}" class="btn btn-outline-primary">Xem thêm</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card category-card border-0 shadow-sm">
-                    <img src="{{ url_for('static', filename='img/category-cats.jpeg') }}" class="card-img-top" alt="Cats">
-                    <div class="card-body text-center">
-                        <h4 class="card-title">Mèo Cưng</h4>
-                        <p class="card-text">Thức ăn, đồ chơi & phụ kiện cho mèo</p>
-                        <a href="#" class="btn btn-outline-primary">Xem thêm</a>
-                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">
+                    <p>Hiện chưa có danh mục sản phẩm.</p>
                 </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card category-card border-0 shadow-sm">
-                    <img src="{{ url_for('static', filename='img/category-small-pets.jpeg') }}" class="card-img-top" alt="Small Pets">
-                    <div class="card-body text-center">
-                        <h4 class="card-title">Thú Nhỏ</h4>
-                        <p class="card-text">Sản phẩm cho thỏ, chuột hamster, chim...</p>
-                        <a href="#" class="btn btn-outline-primary">Xem thêm</a>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         </div>
     </div>
 </section>
@@ -142,50 +130,112 @@
             <p class="text-muted">Những sản phẩm được ưa chuộng nhất tại Pet Shop</p>
         </div>
         <div class="row">
-            {% for i in range(1, 9) %}
-            <div class="col-lg-3 col-md-4 col-6 mb-4">
-                <div class="card product-card h-100 border-0 shadow-sm">
-                    <div class="product-badge bg-danger text-white">-20%</div>
-                    <a href="#" class="product-thumb">
-                        <img src="{{ url_for('static', filename='img/product-' + i|string + '.jpeg') }}" class="card-img-top" alt="Product {{ i }}">
-                    </a>
-                    <div class="card-body">
-                        <div class="product-category small text-muted mb-1">Thức ăn chó</div>
-                        <h5 class="card-title product-title">
-                            <a href="#">Thức ăn cao cấp cho chó vị thịt bò</a>
-                        </h5>
-                        <div class="product-rating mb-2">
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star-half-alt text-warning"></i>
-                            <span class="small text-muted ml-1">({{ 10 + i }} đánh giá)</span>
+            {% if featured_products %}
+                {% for product in featured_products %}
+                <div class="col-lg-3 col-md-4 col-6 mb-4">
+                    <div class="card product-card h-100 border-0 shadow-sm">
+                        {% set discount = product.get_product_with_discount() %}
+                        {% if discount %}
+                        <div class="product-badge bg-danger text-white">-{{ discount }}%</div>
+                        {% endif %}
+                        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="product-thumb">
+                            {% if product.thumbnail %}
+                            <img src="{{ product.thumbnail }}" class="card-img-top" alt="{{ product.title }}">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='img/product-placeholder.jpeg') }}" class="card-img-top" alt="{{ product.title }}">
+                            {% endif %}
+                        </a>
+                        <div class="card-body">
+                            <div class="product-category small text-muted mb-1">{{ product.category.name }}</div>
+                            <h5 class="card-title product-title">
+                                <a href="{{ url_for('main.product_detail', product_id=product.id) }}">{{ product.title }}</a>
+                            </h5>
+                            <div class="product-rating mb-2">
+                                {% set avg_rating = product.get_average_rating() %}
+                                {% for i in range(5) %}
+                                    {% if i < avg_rating|int %}
+                                    <i class="fas fa-star text-warning"></i>
+                                    {% elif avg_rating - i > 0 and avg_rating - i < 1 %}
+                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                    <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="small text-muted ml-1">({{ product.feedback|length }} đánh giá)</span>
+                            </div>
+                            <div class="product-price d-flex align-items-center mb-2">
+                                <span class="text-primary font-weight-bold">{{ '{:,.0f}'.format(product.price) }}đ</span>
+                                {% if product.compare_price and product.compare_price > product.price %}
+                                <span class="text-muted ml-2"><del>{{ '{:,.0f}'.format(product.compare_price) }}đ</del></span>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="product-price d-flex align-items-center mb-2">
-                            <span class="text-primary font-weight-bold">{{ 120000 + (i * 10000) }}đ</span>
-                            <span class="text-muted ml-2"><del>{{ 150000 + (i * 10000) }}đ</del></span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-white border-0 pt-0">
-                        <div class="product-action">
-                            <button class="btn btn-primary btn-sm w-100 add-to-cart">
-                                <i class="fas fa-cart-plus mr-2"></i>Thêm vào giỏ
-                            </button>
+                        <div class="card-footer bg-white border-0 pt-0">
+                            <div class="product-action">
+                                <button class="btn btn-primary btn-sm w-100 add-to-cart" data-product-id="{{ product.id }}">
+                                    <i class="fas fa-cart-plus mr-2"></i>Thêm vào giỏ
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">
+                    <p>Hiện chưa có sản phẩm nổi bật.</p>
+                </div>
+            {% endif %}
         </div>
         <div class="text-center mt-4">
-            <a href="#" class="btn btn-outline-primary btn-lg">Xem tất cả sản phẩm</a>
+            <a href="{{ url_for('main.products') }}" class="btn btn-outline-primary btn-lg">Xem tất cả sản phẩm</a>
+        </div>
+    </div>
+</section>
+
+<!-- Services Overview Section -->
+<section class="services-section py-5 bg-light">
+    <div class="container">
+        <div class="section-heading text-center mb-5">
+            <h2 class="font-weight-bold">Dịch Vụ Thú Cưng</h2>
+            <p class="text-muted">Các dịch vụ chăm sóc toàn diện và chuyên nghiệp cho thú cưng của bạn</p>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm text-center hover-effect">
+                    <div class="card-body">
+                        <i class="fas fa-stethoscope text-primary fa-3x mb-3"></i>
+                        <h4 class="card-title">Dịch vụ thú y</h4>
+                        <p class="card-text">Dịch vụ khám bệnh và điều trị toàn diện cho thú cưng với đội ngũ bác sĩ chuyên nghiệp.</p>
+                        <a href="{{ url_for('main.service') }}" class="btn btn-outline-primary mt-3">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm text-center hover-effect">
+                    <div class="card-body">
+                        <i class="fas fa-cut text-primary fa-3x mb-3"></i>
+                        <h4 class="card-title">Dịch vụ làm đẹp</h4>
+                        <p class="card-text">Dịch vụ tắm, cắt tỉa lông, dưỡng lông và làm đẹp toàn diện cho thú cưng của bạn.</p>
+                        <a href="{{ url_for('main.service') }}" class="btn btn-outline-primary mt-3">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm text-center hover-effect">
+                    <div class="card-body">
+                        <i class="fas fa-home text-primary fa-3x mb-3"></i>
+                        <h4 class="card-title">Dịch vụ trông giữ</h4>
+                        <p class="card-text">Dịch vụ trông giữ thú cưng an toàn, thoải mái khi bạn đi vắng hoặc bận rộn.</p>
+                        <a href="{{ url_for('main.service') }}" class="btn btn-outline-primary mt-3">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- Testimonials Section -->
-<section class="testimonials-section py-5 bg-light">
+<section class="testimonials-section py-5">
     <div class="container">
         <div class="section-heading text-center mb-5">
             <h2 class="font-weight-bold">Khách Hàng Nói Gì Về Chúng Tôi</h2>
@@ -204,9 +254,9 @@
                         </div>
                         <p class="card-text">"Sản phẩm chất lượng cao, giá cả hợp lý. Nhân viên tư vấn nhiệt tình, chuyên nghiệp. Chó nhà mình rất thích thức ăn ở đây."</p>
                         <div class="d-flex align-items-center mt-4">
-                            <img src="{{ url_for('static', filename='img/avatar-1.jpeg') }}" alt="Customer" class="rounded-circle mr-3" width="50">
+                            <img src="{{ url_for('static', filename='img/hhh.png') }}" alt="Customer" class="rounded-circle mr-3" width="50">
                             <div>
-                                <h6 class="mb-0">Nguyễn Văn A</h6>
+                                <h6 class="mb-0">Huấn Hoa Hồng</h6>
                                 <small class="text-muted">Khách hàng thân thiết</small>
                             </div>
                         </div>
@@ -225,9 +275,9 @@
                         </div>
                         <p class="card-text">"Dịch vụ chăm sóc thú cưng tuyệt vời, đội ngũ bác sĩ thú y chuyên nghiệp và tận tâm. Mèo nhà mình rất khỏe mạnh sau khi khám tại đây."</p>
                         <div class="d-flex align-items-center mt-4">
-                            <img src="{{ url_for('static', filename='img/avatar-2.jpeg') }}" alt="Customer" class="rounded-circle mr-3" width="50">
+                            <img src="{{ url_for('static', filename='img/pt.png') }}" alt="Customer" class="rounded-circle mr-3" width="50">
                             <div>
-                                <h6 class="mb-0">Trần Thị B</h6>
+                                <h6 class="mb-0">Phạm Thoại</h6>
                                 <small class="text-muted">Khách hàng thân thiết</small>
                             </div>
                         </div>
@@ -246,9 +296,9 @@
                         </div>
                         <p class="card-text">"Giao hàng nhanh chóng, đóng gói cẩn thận. Sản phẩm đúng như mô tả, chất lượng tốt. Sẽ quay lại mua sắm trong tương lai."</p>
                         <div class="d-flex align-items-center mt-4">
-                            <img src="{{ url_for('static', filename='img/avatar-3.jpeg') }}" alt="Customer" class="rounded-circle mr-3" width="50">
+                            <img src="{{ url_for('static', filename='img/hdm.png') }}" alt="Customer" class="rounded-circle mr-3" width="50">
                             <div>
-                                <h6 class="mb-0">Lê Văn C</h6>
+                                <h6 class="mb-0">Hằng Du Mục</h6>
                                 <small class="text-muted">Khách hàng mới</small>
                             </div>
                         </div>
@@ -310,7 +360,7 @@
             e.preventDefault();
             const email = $(this).find('input[type="email"]').val();
             // Normally would send to server
-            alert('Cảm ơn bạn đã đăng ký nhận tin với email: ' + email);
+            showNotification('success', 'Cảm ơn bạn đã đăng ký nhận tin với email: ' + email);
             $(this).find('input[type="email"]').val('');
         });
 
@@ -327,22 +377,30 @@
         // Add to cart button
         $('.add-to-cart').click(function(e) {
             e.preventDefault();
-            const productName = $(this).closest('.product-card').find('.product-title a').text();
-            alert('Đã thêm sản phẩm "' + productName + '" vào giỏ hàng!');
-        });
+            const productId = $(this).data('product-id');
 
-        // Back to top button
-        $(window).scroll(function() {
-            if ($(this).scrollTop() > 300) {
-                $('#backToTop').fadeIn();
-            } else {
-                $('#backToTop').fadeOut();
-            }
-        });
+            $.ajax({
+                url: '{{ url_for("main.add_to_cart") }}',
+                type: 'POST',
+                data: {
+                    product_id: productId,
+                    quantity: 1
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update cart count
+                        $('.navbar .badge').text(response.cart_count);
 
-        $('#backToTop').click(function(e) {
-            e.preventDefault();
-            $('html, body').animate({scrollTop: 0}, 800);
+                        // Show notification
+                        showNotification('success', 'Đã thêm sản phẩm vào giỏ hàng!');
+                    } else {
+                        showNotification('warning', response.message || 'Không thể thêm vào giỏ hàng');
+                    }
+                },
+                error: function() {
+                    showNotification('danger', 'Đã xảy ra lỗi. Vui lòng thử lại sau.');
+                }
+            });
         });
     });
 </script>

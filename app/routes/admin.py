@@ -9,7 +9,7 @@ from datetime import datetime
 admin = Blueprint('admin', __name__)
 
 
-@admin.route('/')
+@admin.route('/admin')
 @admin_required
 def index():
     users_count = User.query.filter_by(is_deleted=False).count()
